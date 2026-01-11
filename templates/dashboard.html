@@ -22,6 +22,41 @@
             <p class="font-bold">Check History</p>
         </div>
     </div>
+    <!-- Referral Section -->
+    <div class="bg-white p-4 rounded-lg shadow mb-4">
+        <h3 class="font-bold text-gray-700 mb-2">Invite & Earn</h3>
+        <p class="text-xs text-gray-500 mb-2">Share this link and earn 5 Taka per join!</p>
+        
+        <div class="flex gap-2">
+            <input type="text" value="{{ request.url_root }}auth?ref={{ uid }}" id="refLink" readonly 
+                   class="w-full border p-2 rounded text-xs text-gray-600 bg-gray-50">
+            <button onclick="copyRef()" class="bg-blue-600 text-white px-4 py-2 rounded text-xs">Copy</button>
+        </div>
+    </div>
+
+    <!-- Referral List -->
+    <div class="bg-white rounded-lg shadow overflow-hidden mb-4">
+        <div class="p-3 bg-gray-50 border-b font-bold text-sm">My Referrals ({{ referrals|length }})</div>
+        <div class="max-h-40 overflow-y-auto">
+            {% for ref in referrals %}
+            <div class="p-3 border-b text-sm flex justify-between">
+                <span>{{ ref.email.split('@')[0] }}***</span>
+                <span class="text-gray-400 text-xs">Joined</span>
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-gray-400 text-xs">No referrals yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function copyRef() {
+            var copyText = document.getElementById("refLink");
+            copyText.select();
+            document.execCommand("copy");
+            alert("Link Copied! Share it now.");
+        }
+    </script>
 
     <!-- History -->
     <h3 class="font-bold text-gray-700 mt-4">Recent Activity</h3>
