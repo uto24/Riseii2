@@ -219,16 +219,18 @@ def tasks():
     if request.method == 'POST':
         task_id = request.form.get('task_id')
         
-        # 🔒 SECURITY CHECK: ইউজার কি অলরেডি এই কাজ করেছে?
-        existing_sub = db.collection('task_submissions')\
-            .where(field_path='uid', op_string='==', value=uid)\
-            .where(field_path='task_id', op_string='==', value=task_id).get()
+        # 🔒 SECURITY CHECK: Check if already submitted
+        # We use parentheses () for multi-line query to avoid indentation errors
+        existing_sub = db.collection('task_submissions').where(
+            field_path='uid', op_string='==', value=uid
+        ).where(
+            field_path='task_id', op_string='==', value=task_id
+        ).get()
             
         if existing_sub:
             flash("You have already submitted this task!", "error")
             return redirect(url_for('tasks'))
 
-        # যদি না করে থাকে, তবেই সামনে আগাবে
         task_type = request.form.get('task_type')
         submission_data = {
             'uid': uid,
@@ -256,22 +258,23 @@ def tasks():
 
     # --- GET TASKS LIST ---
     
-    # ১. সব টাস্ক আনা
-    # created_at বাদ দিয়ে সাধারণ ভাবে কল করা হচ্ছে
-tasks_ref = db.collection('tasks').stream()
-    # ২. ইউজার অলরেডি কী কী সাবমিট করেছে তা আনা
-    user_submissions = db.collection('task_submissions')\
-        .where(field_path='uid', op_string='==', value=uid).stream()
+    # 1. Get all tasks (Using stream without sort to avoid errors if field missing)
+    tasks_ref = db.collection('tasks').stream()
     
-    # সাবমিট করা টাস্কের ID গুলো একটি লিস্টে রাখা
-    submitted_task_ids = [sub.to_dict()['task_id'] for sub in user_submissions]
+    # 2. Get user submissions
+    user_submissions = db.collection('task_submissions').where(
+        field_path='uid', op_string='==', value=uid
+    ).stream()
+    
+    # List of task IDs user has already done
+    submitted_task_ids = [sub.to_dict().get('task_id') for sub in user_submissions]
     
     tasks_list = []
     for t in tasks_ref:
         task_data = t.to_dict()
         task_data['id'] = t.id
         
-        # ৩. চেক করা: এই টাস্ক কি ইউজার আগে করেছে?
+        # Check if done
         if t.id in submitted_task_ids:
             task_data['is_done'] = True
         else:
@@ -279,8 +282,11 @@ tasks_ref = db.collection('tasks').stream()
             
         tasks_list.append(task_data)
     
-    return render_template('tasks.html', tasks=tasks_list)
-@app.route('/withdraw', methods=['GET', 'POST'])
+    # Optional: Sort manually by python (safest way)
+    # This sorts new tasks first, handling missing 'created_at' gracefully
+    tasks_list.sort(key=lambda x: str(x.get('created_at', '')), reverse=True)
+    
+    return render_template('tasks.html', tasks=tasks_list)@app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
     uid = session['user_id']
