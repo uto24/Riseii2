@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-4">Available Tasks</h2>
+
+<div class="space-y-4 mb-20">
+    {% for task in tasks %}
+    <div class="bg-white p-5 rounded-lg shadow border-l-4 border-blue-500">
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 class="font-bold text-lg">{{ task.title }}</h3>
+                <p class="text-sm text-gray-600">{{ task.description }}</p>
+                <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mt-2 capitalize">{{ task.task_type }}</span>
+            </div>
+            <div class="text-right">
+                <span class="block text-xl font-bold text-green-600">৳{{ task.reward }}</span>
+            </div>
+        </div>
+
+        <form action="/tasks" method="POST" enctype="multipart/form-data" class="mt-4 pt-4 border-t">
+            <input type="hidden" name="task_id" value="{{ task.id }}">
+            <input type="hidden" name="task_type" value="{{ task.proof_requirement }}">
+            
+            <label class="block text-xs font-bold mb-1">Submit Proof ({{ task.proof_requirement }})</label>
+            
+            {% if task.proof_requirement == 'image' %}
+                <input type="file" name="image" accept="image/*" required class="w-full text-sm mb-2">
+            {% else %}
+                <input type="text" name="proof_text" placeholder="Paste link or text here" required class="w-full border p-2 rounded text-sm mb-2">
+            {% endif %}
+            
+            <button type="submit" class="w-full bg-gray-800 text-white py-2 rounded text-sm hover:bg-gray-900">Submit Task</button>
+        </form>
+    </div>
+    {% else %}
+    <p class="text-center text-gray-500">No tasks available right now.</p>
+    {% endfor %}
+</div>
+{% endblock %}
