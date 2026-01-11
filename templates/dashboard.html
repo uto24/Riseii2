@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-4 mb-20">
+    <!-- Balance Card -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-xl text-white shadow-lg">
+        <p class="text-sm opacity-90">Total Balance</p>
+        <h2 class="text-4xl font-bold">৳ {{ user.balance }}</h2>
+        <p class="text-xs mt-2 opacity-80">{{ user.email }}</p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow text-center">
+            <i class="fas fa-users text-blue-500 text-2xl mb-1"></i>
+            <p class="text-gray-500 text-xs">Referrals</p>
+            <p class="font-bold">{{ user.referral_count }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow text-center">
+            <i class="fas fa-history text-green-500 text-2xl mb-1"></i>
+            <p class="text-gray-500 text-xs">Tasks Done</p>
+            <p class="font-bold">Check History</p>
+        </div>
+    </div>
+
+    <!-- History -->
+    <h3 class="font-bold text-gray-700 mt-4">Recent Activity</h3>
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full text-sm text-left">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="p-3">Type</th>
+                    <th class="p-3 text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in history %}
+                <tr class="border-b">
+                    <td class="p-3 capitalize">{{ h.type }}</td>
+                    <td class="p-3 text-right font-bold {{ 'text-red-500' if h.amount < 0 else 'text-green-500' }}">
+                        {{ h.amount }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="2" class="p-3 text-center text-gray-400">No history found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
