@@ -76,11 +76,17 @@ def auth():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('auth.html', config=firebase_config)
+
+
 @app.route('/session_login', methods=['POST'])
 def session_login():
     data = request.json
     id_token = data.get('idToken')
-    ref_code = data.get('refCode') # Frontend থেকে আসছে
+    ref_code = data.get('refCode')
+    
+    # নতুন ফিল্ড
+    name = data.get('name')
+    fb_link = data.get('fb_link')
     
     try:
         decoded_token = admin_auth.verify_id_token(id_token)
@@ -91,9 +97,14 @@ def session_login():
         user_doc = user_ref.get()
         
         if not user_doc.exists:
-            # নতুন ইউজার তৈরি হচ্ছে
+            # যদি নাম ফ্রন্টএন্ড থেকে না আসে (যেমন লগইন এর সময়), ডিফল্ট ভ্যালু দাও
+            if not name:
+                name = email.split('@')[0]
+
             new_user_data = {
                 'email': email,
+                'name': name,         # নাম সেভ হচ্ছে
+                'fb_link': fb_link,   # ফেসবুক লিংক সেভ হচ্ছে
                 'balance': 0.0,
                 'role': 'user',
                 'created_at': datetime.datetime.now(),
@@ -107,10 +118,9 @@ def session_login():
                 referrer_doc = referrer_ref.get()
                 
                 if referrer_doc.exists:
-                    # 1. নতুন ইউজারের ডাটা আপডেট
                     new_user_data['referred_by'] = ref_code
                     
-                    # 2. যে রেফার করেছে তাকে বোনাস দেওয়া (যেমন: ৫ টাকা)
+                    # বোনাস দেওয়া
                     referrer_data = referrer_doc.to_dict()
                     new_ref_balance = referrer_data.get('balance', 0) + 5.0
                     new_ref_count = referrer_data.get('referral_count', 0) + 1
@@ -120,12 +130,11 @@ def session_login():
                         'referral_count': new_ref_count
                     })
                     
-                    # 3. হিস্টোরিতে যোগ করা
                     db.collection('balance_history').add({
                         'uid': ref_code,
                         'type': 'referral_bonus',
                         'amount': 5.0,
-                        'description': f'Referred {email}',
+                        'description': f'Referred {name or email}',
                         'timestamp': datetime.datetime.now()
                     })
             # --- REFERRAL LOGIC END ---
@@ -142,7 +151,9 @@ def session_login():
         
         return jsonify({"status": "success"})
     except Exception as e:
+        print(e)
         return jsonify({"status": "error", "message": str(e)}), 401
+        
 @app.route('/logout')
 def logout():
     session.clear()
