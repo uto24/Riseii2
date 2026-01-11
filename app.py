@@ -79,35 +79,65 @@ def auth():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('auth.html', config=firebase_config)
-
 @app.route('/session_login', methods=['POST'])
 def session_login():
-    """Receives Firebase ID Token from frontend, verifies it, creates Flask Session"""
     data = request.json
     id_token = data.get('idToken')
+    ref_code = data.get('refCode') # Frontend থেকে আসছে
     
     try:
         decoded_token = admin_auth.verify_id_token(id_token)
         uid = decoded_token['uid']
         email = decoded_token['email']
         
-        # Check/Create User in Firestore
         user_ref = db.collection('users').document(uid)
         user_doc = user_ref.get()
         
         if not user_doc.exists:
-            user_ref.set({
+            # নতুন ইউজার তৈরি হচ্ছে
+            new_user_data = {
                 'email': email,
                 'balance': 0.0,
                 'role': 'user',
                 'created_at': datetime.datetime.now(),
-                'referral_count': 0
-            })
+                'referral_count': 0,
+                'referred_by': None
+            }
+
+            # --- REFERRAL LOGIC START ---
+            if ref_code and ref_code != uid:
+                referrer_ref = db.collection('users').document(ref_code)
+                referrer_doc = referrer_ref.get()
+                
+                if referrer_doc.exists:
+                    # 1. নতুন ইউজারের ডাটা আপডেট
+                    new_user_data['referred_by'] = ref_code
+                    
+                    # 2. যে রেফার করেছে তাকে বোনাস দেওয়া (যেমন: ৫ টাকা)
+                    referrer_data = referrer_doc.to_dict()
+                    new_ref_balance = referrer_data.get('balance', 0) + 5.0
+                    new_ref_count = referrer_data.get('referral_count', 0) + 1
+                    
+                    referrer_ref.update({
+                        'balance': new_ref_balance,
+                        'referral_count': new_ref_count
+                    })
+                    
+                    # 3. হিস্টোরিতে যোগ করা
+                    db.collection('balance_history').add({
+                        'uid': ref_code,
+                        'type': 'referral_bonus',
+                        'amount': 5.0,
+                        'description': f'Referred {email}',
+                        'timestamp': datetime.datetime.now()
+                    })
+            # --- REFERRAL LOGIC END ---
+
+            user_ref.set(new_user_data)
             is_admin = False
         else:
             is_admin = user_doc.to_dict().get('role') == 'admin'
 
-        # Set Session
         session.permanent = True
         session['user_id'] = uid
         session['email'] = email
@@ -116,7 +146,6 @@ def session_login():
         return jsonify({"status": "success"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 401
-
 @app.route('/logout')
 def logout():
     session.clear()
