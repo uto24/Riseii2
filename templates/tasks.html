@@ -41,6 +41,8 @@
             </div>
         </div>
 
+        <!-- ... (Loop এর উপরের অংশ ঠিক থাকবে) ... -->
+
         <!-- Body -->
         <div class="p-5">
             <div class="bg-blue-50 p-4 rounded-lg mb-4 text-sm text-gray-700 border border-blue-100">
@@ -48,44 +50,50 @@
                 <p class="whitespace-pre-line">{{ task.description }}</p>
             </div>
 
-            <!-- Action Button -->
             <a href="{{ task.task_link }}" target="_blank" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded mb-4 transition">
                 <i class="fas fa-external-link-alt mr-2"></i> Open Job Link
             </a>
 
-            <!-- Submission Form -->
-            <form action="/tasks" method="POST" enctype="multipart/form-data" class="pt-4 border-t border-dashed border-gray-300">
-                <input type="hidden" name="task_id" value="{{ task.id }}">
-                <input type="hidden" name="task_type" value="{{ task.proof_requirement }}">
+            <!-- ✅ CHANGE HERE: যদি কাজ করা হয়ে থাকে, ফর্ম দেখাবো না -->
+            {% if task.is_done %}
                 
-                <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">
-                    Submit Proof ({{ task.proof_requirement }})
-                </label>
-                
-                {% if task.proof_requirement == 'image' %}
-                    <!-- Image Compressor Input -->
-                    <div class="relative">
-                        <input type="file" name="image" accept="image/*" required 
-                               class="block w-full text-sm text-slate-500
-                               file:mr-4 file:py-2 file:px-4
-                               file:rounded-full file:border-0
-                               file:text-sm file:font-semibold
-                               file:bg-blue-50 file:text-blue-700
-                               hover:file:bg-blue-100"
-                               onchange="compressImage(this)">
-                        <p class="text-xs text-green-600 mt-1 hidden compression-msg font-bold">
-                            <i class="fas fa-cog fa-spin"></i> Compressing image...
-                        </p>
-                    </div>
-                {% else %}
-                    <input type="text" name="proof_text" placeholder="Paste screenshot link or required text/code" 
-                           required class="w-full border border-gray-300 p-3 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                {% endif %}
-                
-                <button type="submit" class="w-full mt-4 bg-gray-900 text-white py-3 rounded-lg font-bold hover:bg-black transition submit-btn shadow-lg">
-                    Submit for Review
-                </button>
-            </form>
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative text-center">
+                    <strong class="font-bold"><i class="fas fa-check-circle"></i> Completed</strong>
+                    <span class="block sm:inline">You have already submitted this task.</span>
+                </div>
+
+            {% else %}
+
+                <!-- Submission Form (যদি কাজ না করা থাকে, তবেই দেখাবে) -->
+                <form action="/tasks" method="POST" enctype="multipart/form-data" class="pt-4 border-t border-dashed border-gray-300">
+                    <input type="hidden" name="task_id" value="{{ task.id }}">
+                    <input type="hidden" name="task_type" value="{{ task.proof_requirement }}">
+                    
+                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">
+                        Submit Proof ({{ task.proof_requirement }})
+                    </label>
+                    
+                    {% if task.proof_requirement == 'image' %}
+                        <div class="relative">
+                            <input type="file" name="image" accept="image/*" required 
+                                   class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                   onchange="compressImage(this)">
+                            <p class="text-xs text-green-600 mt-1 hidden compression-msg font-bold">
+                                <i class="fas fa-cog fa-spin"></i> Compressing image...
+                            </p>
+                        </div>
+                    {% else %}
+                        <input type="text" name="proof_text" placeholder="Paste proof here" 
+                               required class="w-full border border-gray-300 p-3 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    {% endif %}
+                    
+                    <button type="submit" class="w-full mt-4 bg-gray-900 text-white py-3 rounded-lg font-bold hover:bg-black transition submit-btn shadow-lg">
+                        Submit for Review
+                    </button>
+                </form>
+
+            {% endif %}
+            <!-- ✅ END CHANGE -->
         </div>
     </div>
     {% else %}
