@@ -1,17 +1,78 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mt-10">
-    <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">Riseii Login</h1>
+<div class="min-h-screen flex flex-col justify-center items-center -mt-10">
     
-    <div id="auth-form" class="space-y-4">
-        <input type="email" id="email" placeholder="Email Address" class="w-full p-3 border rounded">
-        <input type="password" id="password" placeholder="Password" class="w-full p-3 border rounded">
+    <!-- Auth Card -->
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h2 id="form-title" class="text-2xl font-bold text-center text-gray-800 mb-6">একাউন্ট খুলুন</h2>
         
-        <button onclick="handleAuth('login')" class="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700">Login</button>
-        <button onclick="handleAuth('signup')" class="w-full bg-green-500 text-white py-3 rounded hover:bg-green-600">Create Account</button>
+        <!-- Google Login Button -->
+        <button onclick="handleGoogleAuth()" class="w-full border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium py-2.5 rounded flex items-center justify-center gap-2 mb-4 transition">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="google">
+            Google দিয়ে চালিয়ে যান
+        </button>
+
+        <div class="flex items-center gap-2 mb-4">
+            <div class="h-px w-full bg-gray-200"></div>
+            <span class="text-gray-400 text-sm">অথবা</span>
+            <div class="h-px w-full bg-gray-200"></div>
+        </div>
+
+        <div id="auth-form" class="space-y-4">
+            <!-- Name Field (Only for Signup) -->
+            <div id="name-field">
+                <label class="block text-sm font-medium text-gray-700 mb-1">আপনার নাম</label>
+                <input type="text" id="name" placeholder="আপনার পুরো নাম" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ইমেইল</label>
+                <input type="email" id="email" placeholder="example@mail.com" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <!-- Password -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">পাসওয়ার্ড (কমপক্ষে ৬ অক্ষরের)</label>
+                <input type="password" id="password" placeholder="******" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <!-- FB Link (Only for Signup) -->
+            <div id="fb-field">
+                <label class="block text-sm font-medium text-gray-700 mb-1">ফেসবুক প্রোফাইল লিঙ্ক (ঐচ্ছিক)</label>
+                <input type="url" id="fb_link" placeholder="https://facebook.com/your.profile" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <!-- Referral Code -->
+            <div id="ref-field">
+                <label class="block text-sm font-medium text-gray-700 mb-1">রেফার কোড (যদি থাকে)</label>
+                <input type="text" id="ref_code_input" placeholder="রেফার কোড" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+            </div>
+
+            <!-- Action Button -->
+            <button id="submit-btn" onclick="handleAuth()" class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition">একাউন্ট খুলুন</button>
+        </div>
+
+        <p id="status" class="text-center text-red-500 mt-4 text-sm font-medium"></p>
+
+        <!-- Toggle Login/Signup -->
+        <p class="text-center text-sm text-gray-600 mt-6">
+            <span id="toggle-text">আপনার একাউন্ট আছে?</span> 
+            <button onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">এখানে লগইন করুন</button>
+        </p>
     </div>
-    <p id="status" class="text-center text-red-500 mt-2 text-sm"></p>
+
+    <!-- Footer -->
+    <footer class="mt-10 text-center text-gray-500 text-xs space-y-2">
+        <div class="flex justify-center space-x-4">
+            <a href="#" class="hover:text-gray-800">আমাদের সম্পর্কে</a>
+            <a href="#" class="hover:text-gray-800">শর্তাবলী</a>
+            <a href="#" class="hover:text-gray-800">গোপনীয়তা নীতি</a>
+            <a href="#" class="hover:text-gray-800">যোগাযোগ</a>
+        </div>
+        <p>&copy; 2025 Riseii. সর্বস্বত্ব সংরক্ষিত।</p>
+    </footer>
 </div>
 
 <!-- Firebase SDK -->
@@ -22,55 +83,110 @@
     const firebaseConfig = {{ config|tojson }};
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-    // 1. URL থেকে রেফার কোড চেক করা
+    let isSignup = true;
+
+    // Check URL for Referral Code
     const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-    if (refCode) {
-        localStorage.setItem('referral_code', refCode);
+    const refParam = urlParams.get('ref');
+    if (refParam) {
+        document.getElementById('ref_code_input').value = refParam;
+        localStorage.setItem('referral_code', refParam);
     }
 
-    async function handleAuth(action) {
+    function toggleMode() {
+        isSignup = !isSignup;
+        const nameField = document.getElementById('name-field');
+        const fbField = document.getElementById('fb-field');
+        const refField = document.getElementById('ref-field');
+        const title = document.getElementById('form-title');
+        const btn = document.getElementById('submit-btn');
+        const toggleText = document.getElementById('toggle-text');
+        const toggleBtn = toggleText.nextElementSibling;
+
+        if (isSignup) {
+            nameField.style.display = 'block';
+            fbField.style.display = 'block';
+            refField.style.display = 'block';
+            title.innerText = "একাউন্ট খুলুন";
+            btn.innerText = "একাউন্ট খুলুন";
+            toggleText.innerText = "আপনার একাউন্ট আছে?";
+            toggleBtn.innerText = "এখানে লগইন করুন";
+        } else {
+            nameField.style.display = 'none';
+            fbField.style.display = 'none';
+            refField.style.display = 'none';
+            title.innerText = "লগইন করুন";
+            btn.innerText = "লগইন করুন";
+            toggleText.innerText = "একাউন্ট নেই?";
+            toggleBtn.innerText = "নতুন একাউন্ট খুলুন";
+        }
+    }
+
+    async function sendToServer(idToken, extraData = {}) {
+        const refCode = document.getElementById('ref_code_input').value || localStorage.getItem('referral_code');
+        
+        const payload = {
+            idToken: idToken,
+            refCode: isSignup ? refCode : null,
+            ...extraData
+        };
+
+        const res = await fetch('/session_login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await res.json();
+        if(data.status === 'success') {
+            window.location.href = '/dashboard';
+        } else {
+            document.getElementById('status').innerText = "Server Error: " + data.message;
+        }
+    }
+
+    async function handleAuth() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
+        const name = document.getElementById('name').value;
+        const fbLink = document.getElementById('fb_link').value;
         const status = document.getElementById('status');
-        
-        // সংরক্ষিত রেফার কোড নেওয়া
-        const finalRef = localStorage.getItem('referral_code');
 
-        if(!email || !pass) { status.innerText = "Fill all fields"; return; }
+        if(!email || !pass) { status.innerText = "ইমেইল এবং পাসওয়ার্ড দিন"; return; }
+        if(isSignup && !name) { status.innerText = "আপনার নাম লিখুন"; return; }
 
         status.innerText = "Processing...";
 
         try {
             let userCred;
-            if(action === 'signup') {
+            if(isSignup) {
                 userCred = await auth.createUserWithEmailAndPassword(email, pass);
+                // Send extra data (Name, FB Link)
+                await sendToServer(await userCred.user.getIdToken(), {
+                    name: name,
+                    fb_link: fbLink
+                });
             } else {
                 userCred = await auth.signInWithEmailAndPassword(email, pass);
+                await sendToServer(await userCred.user.getIdToken());
             }
-
-            const idToken = await userCred.user.getIdToken();
-
-            // 2. Token এর সাথে refCode পাঠানো
-            const res = await fetch('/session_login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    idToken: idToken,
-                    refCode: action === 'signup' ? finalRef : null // শুধুমাত্র সাইনআপে রেফার কাজ করবে
-                })
-            });
-            
-            const data = await res.json();
-            if(data.status === 'success') {
-                window.location.href = '/dashboard';
-            } else {
-                status.innerText = "Server Error: " + data.message;
-            }
-
         } catch(error) {
             status.innerText = error.message;
+        }
+    }
+
+    async function handleGoogleAuth() {
+        try {
+            const result = await auth.signInWithPopup(googleProvider);
+            // For Google, name comes from profile
+            await sendToServer(await result.user.getIdToken(), {
+                name: result.user.displayName,
+                fb_link: "" 
+            });
+        } catch (error) {
+            document.getElementById('status').innerText = error.message;
         }
     }
 </script>
