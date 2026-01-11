@@ -22,11 +22,24 @@
     const firebaseConfig = {{ config|tojson }};
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const firebaseConfig = {{ config|tojson }};
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // 1. URL থেকে রেফার কোড চেক করা
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+        localStorage.setItem('referral_code', refCode);
+    }
 
     async function handleAuth(action) {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
         const status = document.getElementById('status');
+        
+        // সংরক্ষিত রেফার কোড নেওয়া
+        const finalRef = localStorage.getItem('referral_code');
 
         if(!email || !pass) { status.innerText = "Fill all fields"; return; }
 
@@ -42,11 +55,14 @@
 
             const idToken = await userCred.user.getIdToken();
 
-            // Send Token to Flask
+            // 2. Token এর সাথে refCode পাঠানো
             const res = await fetch('/session_login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({idToken: idToken})
+                body: JSON.stringify({
+                    idToken: idToken,
+                    refCode: action === 'signup' ? finalRef : null // শুধুমাত্র সাইনআপে রেফার কাজ করবে
+                })
             });
             
             const data = await res.json();
