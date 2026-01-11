@@ -129,8 +129,11 @@ def dashboard():
     uid = session['user_id']
     user = db.collection('users').document(uid).get().to_dict()
     
-    pending_tasks = db.collection('task_submissions').where('status', '==', 'pending').stream()
-pending_withdraws = db.collection('withdraw_requests').where('status', '==', 'pending').stream()
+    # FIXED: Used keyword arguments to remove warning
+    balance_history = db.collection('balance_history')\
+        .where(field_path='uid', op_string='==', value=uid)\
+        .order_by('timestamp', direction=Query.DESCENDING).limit(5).stream()
+    
     history = [h.to_dict() for h in balance_history]
     
     return render_template('dashboard.html', user=user, history=history)
@@ -231,10 +234,13 @@ def admin_panel():
         })
         flash("Task created.", "success")
     
-    pending_tasks = db.collection('task_submissions').where(field_path='status', op_string='==', value='pending').stream()
-pending_withdraws = db.collection('withdraw_requests').where(field_path='status', op_string='==', value='pending').stream()
-    tasks_data = [{'id': d.id, **d.to_dict()} for d in pending_tasks]
-    withdraws_data = [{'id': d.id, **d.to_dict()} for d in pending_withdraws]
+    # Data Fetching (FIXED: Cleaned up duplicates and used keyword args)
+    pending_tasks_stream = db.collection('task_submissions').where(field_path='status', op_string='==', value='pending').stream()
+    pending_withdraws_stream = db.collection('withdraw_requests').where(field_path='status', op_string='==', value='pending').stream()
+    
+    # FIXED: Added logic to convert streams to lists so template can read them
+    tasks_data = [{'id': d.id, **d.to_dict()} for d in pending_tasks_stream]
+    withdraws_data = [{'id': d.id, **d.to_dict()} for d in pending_withdraws_stream]
     
     return render_template('admin.html', 
                            pending_tasks=tasks_data, 
@@ -294,15 +300,19 @@ def reject_withdraw(req_id):
     req_ref = db.collection('withdraw_requests').document(req_id)
     req = req_ref.get().to_dict()
     
-    if req['status'] == 'pending':
+    if req and req['status'] == 'pending':
         user_ref = db.collection('users').document(req['uid'])
         user_data = user_ref.get().to_dict()
+        # Add the money back to user account
         user_ref.update({'balance': user_data['balance'] + req['amount']})
         
         req_ref.update({'status': 'rejected'})
         flash("Withdraw rejected & Refunded.", "success")
         
     return redirect(url_for('admin_panel'))
+
+# Required for Vercel
+app = app 
 
 if __name__ == '__main__':
     app.run(debug=True)
