@@ -129,10 +129,8 @@ def dashboard():
     uid = session['user_id']
     user = db.collection('users').document(uid).get().to_dict()
     
-    # Get recent history
-    balance_history = db.collection('balance_history')\
-        .where('uid', '==', uid).order_by('timestamp', direction=Query.DESCENDING).limit(5).stream()
-    
+    pending_tasks = db.collection('task_submissions').where('status', '==', 'pending').stream()
+pending_withdraws = db.collection('withdraw_requests').where('status', '==', 'pending').stream()
     history = [h.to_dict() for h in balance_history]
     
     return render_template('dashboard.html', user=user, history=history)
@@ -233,10 +231,8 @@ def admin_panel():
         })
         flash("Task created.", "success")
     
-    # Data Fetching
-    pending_tasks = db.collection('task_submissions').where('status', '==', 'pending').stream()
-    pending_withdraws = db.collection('withdraw_requests').where('status', '==', 'pending').stream()
-    
+    pending_tasks = db.collection('task_submissions').where(field_path='status', op_string='==', value='pending').stream()
+pending_withdraws = db.collection('withdraw_requests').where(field_path='status', op_string='==', value='pending').stream()
     tasks_data = [{'id': d.id, **d.to_dict()} for d in pending_tasks]
     withdraws_data = [{'id': d.id, **d.to_dict()} for d in pending_withdraws]
     
