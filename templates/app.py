@@ -217,32 +217,76 @@ def withdraw():
             flash("Withdraw request sent.", "success")
             
     return render_template('withdraw.html', user=user)
+# ==========================================
+# 👑 FULL ADMIN SYSTEM (COPY & PASTE)
+# ==========================================
 
-# --- ADMIN ROUTES ---
 @app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])
 @admin_required
 def admin_panel():
-    # 1. Handle Task Creation
-    if request.method == 'POST' and 'create_task' in request.form:
-        db.collection('tasks').add({
-            'title': request.form.get('title'),
-            'description': request.form.get('description'),
-            'reward': float(request.form.get('reward')),
-            'task_type': request.form.get('task_type'), # e.g. "YouTube Subscribe"
-            'proof_requirement': request.form.get('proof_requirement') # "image" or "link"
-        })
-        flash("Task created.", "success")
+    # --- 1. HANDLE NEW TASK CREATION ---
+    if request.method == 'POST':
+        if 'create_task' in request.form:
+            try:
+                db.collection('tasks').add({
+                    'title': request.form.get('title'),
+                    'category': request.form.get('category'),
+                    'task_link': request.form.get('task_link'),
+                    'description': request.form.get('description'),
+                    'reward': float(request.form.get('reward')),
+                    'proof_requirement': request.form.get('proof_requirement'),
+                    'created_at': datetime.datetime.now()
+                })
+                flash("New Task Published!", "success")
+            except Exception as e:
+                flash(f"Error creating task: {e}", "error")
+
+        # --- 2. HANDLE USER BALANCE UPDATE (Admin Power) ---
+        elif 'update_balance' in request.form:
+            target_uid = request.form.get('target_uid')
+            new_amount = float(request.form.get('amount'))
+            action_type = request.form.get('action_type') # 'add' or 'deduct'
+            
+            user_ref = db.collection('users').document(target_uid)
+            user_data = user_ref.get().to_dict()
+            
+            if user_data:
+                current_bal = user_data.get('balance', 0.0)
+                if action_type == 'add':
+                    final_bal = current_bal + new_amount
+                else:
+                    final_bal = current_bal - new_amount
+                
+                user_ref.update({'balance': final_bal})
+                flash(f"User balance updated to {final_bal}", "success")
+            else:
+                flash("User not found.", "error")
+
+    # --- DATA FETCHING ---
     
-    # Data Fetching
-    pending_tasks = db.collection('task_submissions').where('status', '==', 'pending').stream()
-    pending_withdraws = db.collection('withdraw_requests').where('status', '==', 'pending').stream()
-    
-    tasks_data = [{'id': d.id, **d.to_dict()} for d in pending_tasks]
-    withdraws_data = [{'id': d.id, **d.to_dict()} for d in pending_withdraws]
-    
+    # 1. Pending Tasks
+    p_tasks = db.collection('task_submissions').where(field_path='status', op_string='==', value='pending').stream()
+    pending_tasks = [{'id': d.id, **d.to_dict()} for d in p_tasks]
+
+    # 2. Pending Withdraws
+    p_withdraws = db.collection('withdraw_requests').where(field_path='status', op_string='==', value='pending').stream()
+    pending_withdraws = [{'id': d.id, **d.to_dict()} for d in p_withdraws]
+
+    # 3. Active Tasks (For Deletion)
+    all_tasks_stream = db.collection('tasks').order_by('created_at', direction=Query.DESCENDING).stream()
+    active_tasks = [{'id': d.id, **d.to_dict()} for d in all_tasks_stream]
+
+    # 4. Recent Users (Limit 20)
+    users_stream = db.collection('users').order_by('created_at', direction=Query.DESCENDING).limit(20).stream()
+    users_list = [{'id': d.id, **d.to_dict()} for d in users_stream]
+
     return render_template('admin.html', 
-                           pending_tasks=tasks_data, 
-                           pending_withdraws=withdraws_data)
+                           pending_tasks=pending_tasks, 
+                           pending_withdraws=pending_withdraws,
+                           active_tasks=active_tasks,
+                           users=users_list)
+
+# --- TASK ACTIONS ---
 
 @app.route(f'/{ADMIN_ROUTE}/approve_task/<submission_id>')
 @admin_required
@@ -251,62 +295,76 @@ def approve_task(submission_id):
     sub = sub_ref.get().to_dict()
     
     if sub and sub['status'] == 'pending':
-        # Get Task Info for Reward
-        task_info = db.collection('tasks').document(sub['task_id']).get().to_dict()
-        reward = task_info.get('reward', 0)
+        # Get Reward Amount
+        task_doc = db.collection('tasks').document(sub['task_id']).get()
+        reward = 0
+        task_title = "Unknown Task"
         
-        # Update User Balance
+        if task_doc.exists:
+            t_data = task_doc.to_dict()
+            reward = t_data.get('reward', 0)
+            task_title = t_data.get('title', "Task")
+        
+        # Add Balance
         user_ref = db.collection('users').document(sub['uid'])
         user_data = user_ref.get().to_dict()
-        new_bal = user_data['balance'] + reward
-        user_ref.update({'balance': new_bal})
+        user_ref.update({'balance': user_data.get('balance', 0) + reward})
         
-        # Update Submission
+        # Mark Approved
         sub_ref.update({'status': 'approved'})
         
-        # Log
+        # Log History
         db.collection('balance_history').add({
             'uid': sub['uid'],
             'type': 'task_earning',
             'amount': reward,
-            'description': task_info['title'],
+            'description': f"Approved: {task_title}",
             'timestamp': datetime.datetime.now()
         })
-        
-        flash("Task Approved & Balance Added.", "success")
+        flash("Task Approved & Paid.", "success")
     
-    return redirect(url_for('admin_panel'))
+    return redirect(f'/{ADMIN_ROUTE}')
 
 @app.route(f'/{ADMIN_ROUTE}/reject_task/<submission_id>')
 @admin_required
 def reject_task(submission_id):
     db.collection('task_submissions').document(submission_id).update({'status': 'rejected'})
     flash("Task Rejected.", "success")
-    return redirect(url_for('admin_panel'))
+    return redirect(f'/{ADMIN_ROUTE}')
+
+@app.route(f'/{ADMIN_ROUTE}/delete_task_post/<task_id>')
+@admin_required
+def delete_task_post(task_id):
+    db.collection('tasks').document(task_id).delete()
+    flash("Task Post Deleted Successfully.", "success")
+    return redirect(f'/{ADMIN_ROUTE}')
+
+# --- WITHDRAW ACTIONS ---
 
 @app.route(f'/{ADMIN_ROUTE}/approve_withdraw/<req_id>')
 @admin_required
 def approve_withdraw(req_id):
     db.collection('withdraw_requests').document(req_id).update({'status': 'paid'})
     flash("Withdraw marked as PAID.", "success")
-    return redirect(url_for('admin_panel'))
+    return redirect(f'/{ADMIN_ROUTE}')
 
 @app.route(f'/{ADMIN_ROUTE}/reject_withdraw/<req_id>')
 @admin_required
 def reject_withdraw(req_id):
-    # Refund Balance
     req_ref = db.collection('withdraw_requests').document(req_id)
     req = req_ref.get().to_dict()
     
-    if req['status'] == 'pending':
+    if req and req['status'] == 'pending':
+        # Refund Money
         user_ref = db.collection('users').document(req['uid'])
         user_data = user_ref.get().to_dict()
-        user_ref.update({'balance': user_data['balance'] + req['amount']})
+        user_ref.update({'balance': user_data.get('balance', 0) + req['amount']})
         
         req_ref.update({'status': 'rejected'})
-        flash("Withdraw rejected & Refunded.", "success")
+        flash("Withdraw Rejected & Refunded.", "success")
         
-    return redirect(url_for('admin_panel'))
+    return redirect(f'/{ADMIN_ROUTE}')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
