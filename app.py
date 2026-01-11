@@ -215,10 +215,21 @@ def dashboard():
 def tasks():
     uid = session['user_id']
     
+    # --- TASK SUBMISSION LOGIC ---
     if request.method == 'POST':
         task_id = request.form.get('task_id')
-        task_type = request.form.get('task_type') # 'link', 'image', 'text'
         
+        # 🔒 SECURITY CHECK: ইউজার কি অলরেডি এই কাজ করেছে?
+        existing_sub = db.collection('task_submissions')\
+            .where(field_path='uid', op_string='==', value=uid)\
+            .where(field_path='task_id', op_string='==', value=task_id).get()
+            
+        if existing_sub:
+            flash("You have already submitted this task!", "error")
+            return redirect(url_for('tasks'))
+
+        # যদি না করে থাকে, তবেই সামনে আগাবে
+        task_type = request.form.get('task_type')
         submission_data = {
             'uid': uid,
             'task_id': task_id,
@@ -227,7 +238,7 @@ def tasks():
             'email': session['email']
         }
         
-        # Handle Proof
+        # Image Upload Logic
         if 'image' in request.files and request.files['image'].filename != '':
             img_url = upload_to_imgbb(request.files['image'])
             if not img_url:
@@ -243,12 +254,32 @@ def tasks():
         flash("Task submitted for review!", "success")
         return redirect(url_for('tasks'))
 
-    # Get Available Tasks
-    tasks_ref = db.collection('tasks').stream()
-    tasks_list = [{'id': t.id, **t.to_dict()} for t in tasks_ref]
+    # --- GET TASKS LIST ---
+    
+    # ১. সব টাস্ক আনা
+    tasks_ref = db.collection('tasks').order_by('created_at', direction=Query.DESCENDING).stream()
+    
+    # ২. ইউজার অলরেডি কী কী সাবমিট করেছে তা আনা
+    user_submissions = db.collection('task_submissions')\
+        .where(field_path='uid', op_string='==', value=uid).stream()
+    
+    # সাবমিট করা টাস্কের ID গুলো একটি লিস্টে রাখা
+    submitted_task_ids = [sub.to_dict()['task_id'] for sub in user_submissions]
+    
+    tasks_list = []
+    for t in tasks_ref:
+        task_data = t.to_dict()
+        task_data['id'] = t.id
+        
+        # ৩. চেক করা: এই টাস্ক কি ইউজার আগে করেছে?
+        if t.id in submitted_task_ids:
+            task_data['is_done'] = True
+        else:
+            task_data['is_done'] = False
+            
+        tasks_list.append(task_data)
     
     return render_template('tasks.html', tasks=tasks_list)
-
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
