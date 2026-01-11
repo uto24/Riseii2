@@ -288,8 +288,9 @@ def tasks():
     tasks_list.sort(key=lambda x: str(x.get('created_at', '')), reverse=True)
     
     return render_template('tasks.html', tasks=tasks_list)
-    
-    @app.route('/withdraw', methods=['GET', 'POST'])
+
+
+@app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
     uid = session['user_id']
