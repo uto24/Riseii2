@@ -22,9 +22,6 @@
     const firebaseConfig = {{ config|tojson }};
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const firebaseConfig = {{ config|tojson }};
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
 
     // 1. URL থেকে রেফার কোড চেক করা
     const urlParams = new URLSearchParams(window.location.search);
