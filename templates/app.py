@@ -8,6 +8,7 @@ from firebase_setup import db
 from firebase_admin import auth as admin_auth
 from google.cloud.firestore import Query
 
+
 # Load Envs
 from dotenv import load_dotenv
 load_dotenv()
