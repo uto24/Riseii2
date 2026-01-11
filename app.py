@@ -159,57 +159,22 @@ def logout():
     session.clear()
     flash("Logged out successfully.", "success")
     return redirect(url_for('auth'))
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
     uid = session['user_id']
+    user = db.collection('users').document(uid).get().to_dict()
     
-    # ১. ইউজারের তথ্য আনা
-    user_doc = db.collection('users').document(uid).get()
-    if not user_doc.exists:
-        session.clear()
-        return redirect(url_for('auth'))
-    user = user_doc.to_dict()
-    
-    # ২. ব্যালেন্স হিস্টোরি আনা (সর্বশেষ ১০টি)
+    # FIXED: Used keyword arguments to remove warning
     balance_history = db.collection('balance_history')\
         .where(field_path='uid', op_string='==', value=uid)\
-        .order_by('timestamp', direction=Query.DESCENDING).limit(10).stream()
-    history = [h.to_dict() for h in balance_history]
-
-    # ৩. রেফারেল লিস্ট আনা
-    referrals_stream = db.collection('users')\
-        .where(field_path='referred_by', op_string='==', value=uid).stream()
-    referrals = [{'email': r.to_dict().get('email'), 'name': r.to_dict().get('name', 'Unknown'), 'joined': r.to_dict().get('created_at')} for r in referrals_stream]
-
-    # ৪. টাস্ক পরিসংখ্যান (Stats) বের করা
-    # দ্রষ্টব্য: বড় অ্যাপের জন্য এটি ডাটাবেসে কাউন্টার হিসেবে রাখা ভালো, তবে এখন রিয়েলটাইম কাউন্ট করছি
-    all_tasks = db.collection('task_submissions').where(field_path='uid', op_string='==', value=uid).stream()
+        .order_by('timestamp', direction=Query.DESCENDING).limit(5).stream()
     
-    stats = {
-        'approved': 0,
-        'pending': 0,
-        'rejected': 0,
-        'total_earned_from_tasks': 0
-    }
+    history = [h.to_dict() for h in balance_history]
+    
+    return render_template('dashboard.html', user=user, history=history)
 
-    # লুপ চালিয়ে কাউন্ট করা
-    for t in all_tasks:
-        data = t.to_dict()
-        status = data.get('status')
-        if status == 'approved':
-            stats['approved'] += 1
-        elif status == 'pending':
-            stats['pending'] += 1
-        elif status == 'rejected':
-            stats['rejected'] += 1
-
-    return render_template('dashboard.html', 
-                           user=user, 
-                           history=history, 
-                           referrals=referrals, 
-                           stats=stats,
-                           uid=uid)
 @app.route('/tasks', methods=['GET', 'POST'])
 @login_required
 def tasks():
