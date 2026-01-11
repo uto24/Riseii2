@@ -257,8 +257,8 @@ def tasks():
     # --- GET TASKS LIST ---
     
     # ১. সব টাস্ক আনা
-    tasks_ref = db.collection('tasks').order_by('created_at', direction=Query.DESCENDING).stream()
-    
+    # created_at বাদ দিয়ে সাধারণ ভাবে কল করা হচ্ছে
+tasks_ref = db.collection('tasks').stream()
     # ২. ইউজার অলরেডি কী কী সাবমিট করেছে তা আনা
     user_submissions = db.collection('task_submissions')\
         .where(field_path='uid', op_string='==', value=uid).stream()
