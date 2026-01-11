@@ -67,13 +67,10 @@ def upload_to_imgbb(image_file):
     return None
 
 # --- ROUTES ---
-
 @app.route('/')
 def index():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))
-    return redirect(url_for('auth'))
-
+    # এখন আর সরাসরি রিডাইরেক্ট করবে না, ল্যান্ডিং পেজ দেখাবে
+    return render_template('landing.html')
 @app.route('/auth', methods=['GET', 'POST'])
 def auth():
     if 'user_id' in session:
