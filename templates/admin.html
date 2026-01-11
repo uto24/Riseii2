@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-red-600">Admin Panel</h1>
+
+<!-- Create Task -->
+<div class="bg-white p-6 rounded shadow mb-8">
+    <h3 class="font-bold mb-4">Create New Task</h3>
+    <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" name="title" placeholder="Task Title" required class="border p-2 rounded">
+        <input type="text" name="task_type" placeholder="Type (e.g. YouTube)" required class="border p-2 rounded">
+        <input type="number" name="reward" placeholder="Reward Amount" step="0.01" required class="border p-2 rounded">
+        <select name="proof_requirement" class="border p-2 rounded">
+            <option value="link">Link/Text Proof</option>
+            <option value="image">Screenshot Proof</option>
+        </select>
+        <textarea name="description" placeholder="Instructions" class="border p-2 rounded md:col-span-2"></textarea>
+        <button type="submit" name="create_task" class="bg-gray-800 text-white p-2 rounded md:col-span-2">Create Task</button>
+    </form>
+</div>
+
+<!-- Pending Withdraws -->
+<h3 class="font-bold text-lg mb-2">Pending Withdrawals</h3>
+<div class="bg-white rounded shadow overflow-x-auto mb-8">
+    <table class="w-full text-sm text-left">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="p-3">User</th>
+                <th class="p-3">Method</th>
+                <th class="p-3">Amount</th>
+                <th class="p-3">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for w in pending_withdraws %}
+            <tr class="border-b">
+                <td class="p-3">{{ w.email }}<br>{{ w.number }}</td>
+                <td class="p-3 capitalize">{{ w.method }}</td>
+                <td class="p-3 font-bold">৳{{ w.amount }}</td>
+                <td class="p-3">
+                    <!-- Check admin route variable context -->
+                    {% set admin_path = request.path.strip('/').split('/')[0] %}
+                    <a href="/{{ admin_path }}/approve_withdraw/{{ w.id }}" class="text-green-600 font-bold mr-2">Pay</a>
+                    <a href="/{{ admin_path }}/reject_withdraw/{{ w.id }}" class="text-red-600">X</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="p-3 text-center text-gray-400">No pending withdrawals</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pending Tasks -->
+<h3 class="font-bold text-lg mb-2">Task Submissions</h3>
+<div class="grid gap-4">
+    {% for sub in pending_tasks %}
+    <div class="bg-white p-4 rounded shadow">
+        <p class="text-xs text-gray-500">{{ sub.email }}</p>
+        <p class="text-sm mt-1">
+            <strong>Proof:</strong> 
+            {% if sub.proof_type == 'image' %}
+                <a href="{{ sub.proof }}" target="_blank" class="text-blue-500 underline">View Image</a>
+            {% else %}
+                {{ sub.proof }}
+            {% endif %}
+        </p>
+        <div class="mt-3 flex gap-4">
+            {% set admin_path = request.path.strip('/').split('/')[0] %}
+            <a href="/{{ admin_path }}/approve_task/{{ sub.id }}" class="bg-green-500 text-white px-3 py-1 rounded text-xs">Approve</a>
+            <a href="/{{ admin_path }}/reject_task/{{ sub.id }}" class="bg-red-500 text-white px-3 py-1 rounded text-xs">Reject</a>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-center text-gray-500">No pending tasks.</p>
+    {% endfor %}
+</div>
+{% endblock %}
