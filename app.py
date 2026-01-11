@@ -159,6 +159,7 @@ def logout():
     session.clear()
     flash("Logged out successfully.", "success")
     return redirect(url_for('auth'))
+    
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -286,7 +287,9 @@ def tasks():
     # This sorts new tasks first, handling missing 'created_at' gracefully
     tasks_list.sort(key=lambda x: str(x.get('created_at', '')), reverse=True)
     
-    return render_template('tasks.html', tasks=tasks_list)@app.route('/withdraw', methods=['GET', 'POST'])
+    return render_template('tasks.html', tasks=tasks_list)
+    
+    @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
     uid = session['user_id']
