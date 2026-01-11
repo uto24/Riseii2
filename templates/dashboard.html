@@ -28,8 +28,8 @@
         <p class="text-xs text-gray-500 mb-2">Share this link and earn 5 Taka per join!</p>
         
         <div class="flex gap-2">
-            <input type="text" value="{{ request.url_root }}auth?ref={{ uid }}" id="refLink" readonly 
-                   class="w-full border p-2 rounded text-xs text-gray-600 bg-gray-50">
+          <input type="text" value="{{ request.url_root }}auth?ref={{ session.user_id }}" id="refLink" readonly 
+       class="w-full border p-2 rounded text-xs text-gray-600 bg-gray-50">
             <button onclick="copyRef()" class="bg-blue-600 text-white px-4 py-2 rounded text-xs">Copy</button>
         </div>
     </div>
