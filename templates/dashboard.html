@@ -1,86 +1,173 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="space-y-4 mb-20">
-    <!-- Balance Card -->
-    <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-xl text-white shadow-lg">
-        <p class="text-sm opacity-90">Total Balance</p>
-        <h2 class="text-4xl font-bold">৳ {{ user.balance }}</h2>
-        <p class="text-xs mt-2 opacity-80">{{ user.email }}</p>
-    </div>
 
-    <!-- Quick Stats -->
-    <div class="grid grid-cols-2 gap-4">
-        <div class="bg-white p-4 rounded-lg shadow text-center">
-            <i class="fas fa-users text-blue-500 text-2xl mb-1"></i>
-            <p class="text-gray-500 text-xs">Referrals</p>
-            <p class="font-bold">{{ user.referral_count }}</p>
-        </div>
-        <div class="bg-white p-4 rounded-lg shadow text-center">
-            <i class="fas fa-history text-green-500 text-2xl mb-1"></i>
-            <p class="text-gray-500 text-xs">Tasks Done</p>
-            <p class="font-bold">Check History</p>
+<!-- User Profile Header -->
+<div class="bg-white p-6 rounded-xl shadow-md mb-6 flex flex-col md:flex-row items-center md:items-start gap-4">
+    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl font-bold uppercase">
+        {{ user.name[0] if user.name else user.email[0] }}
+    </div>
+    <div class="text-center md:text-left flex-1">
+        <h2 class="text-2xl font-bold text-gray-800">{{ user.name }}</h2>
+        <p class="text-sm text-gray-500">{{ user.email }}</p>
+        {% if user.fb_link %}
+        <a href="{{ user.fb_link }}" target="_blank" class="text-blue-600 text-xs hover:underline"><i class="fab fa-facebook"></i> Facebook Profile</a>
+        {% endif %}
+        <div class="mt-2">
+            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full uppercase font-bold">{{ user.role }}</span>
         </div>
     </div>
-    <!-- Referral Section -->
-    <div class="bg-white p-4 rounded-lg shadow mb-4">
-        <h3 class="font-bold text-gray-700 mb-2">Invite & Earn</h3>
-        <p class="text-xs text-gray-500 mb-2">Share this link and earn 5 Taka per join!</p>
-        
-        <div class="flex gap-2">
-          <input type="text" value="{{ request.url_root }}auth?ref={{ session.user_id }}" id="refLink" readonly 
-       class="w-full border p-2 rounded text-xs text-gray-600 bg-gray-50">
-            <button onclick="copyRef()" class="bg-blue-600 text-white px-4 py-2 rounded text-xs">Copy</button>
-        </div>
+    <div class="text-center md:text-right">
+        <p class="text-gray-500 text-sm">Current Balance</p>
+        <h1 class="text-4xl font-bold text-green-600">৳ {{ user.balance }}</h1>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="grid grid-cols-2 gap-4 mb-6">
+    <a href="/tasks" class="bg-blue-600 text-white text-center py-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">
+        <i class="fas fa-play-circle mr-2"></i>Start Work
+    </a>
+    <a href="/withdraw" class="bg-green-600 text-white text-center py-3 rounded-lg font-bold shadow hover:bg-green-700 transition">
+        <i class="fas fa-wallet mr-2"></i>Withdraw
+    </a>
+</div>
+
+<!-- Statistics Cards -->
+<h3 class="font-bold text-gray-700 mb-3 ml-1">Work Overview</h3>
+<div class="grid grid-cols-3 gap-2 md:gap-4 mb-6">
+    <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center border-b-4 border-green-500">
+        <p class="text-gray-500 text-xs">Approved</p>
+        <h3 class="text-xl md:text-2xl font-bold text-gray-800">{{ stats.approved }}</h3>
+    </div>
+    <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center border-b-4 border-yellow-500">
+        <p class="text-gray-500 text-xs">Pending</p>
+        <h3 class="text-xl md:text-2xl font-bold text-gray-800">{{ stats.pending }}</h3>
+    </div>
+    <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center border-b-4 border-red-500">
+        <p class="text-gray-500 text-xs">Rejected</p>
+        <h3 class="text-xl md:text-2xl font-bold text-gray-800">{{ stats.rejected }}</h3>
+    </div>
+</div>
+
+<!-- Referral Section -->
+<div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-6 text-white shadow-lg mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-lg">Invite & Earn</h3>
+        <span class="bg-white/20 px-3 py-1 rounded-full text-xs">Bonus: 5 TK</span>
+    </div>
+    <p class="text-sm opacity-90 mb-4">Share your link. Earn 5 Taka for every friend who joins!</p>
+    
+    <div class="flex gap-2 bg-white/10 p-1 rounded">
+        <input type="text" value="{{ request.url_root }}auth?ref={{ session.user_id }}" id="refLink" readonly 
+               class="w-full bg-transparent border-none text-white text-sm px-2 focus:ring-0">
+        <button onclick="copyRef()" class="bg-white text-purple-600 px-4 py-2 rounded text-xs font-bold hover:bg-gray-100">
+            Copy
+        </button>
     </div>
 
-    <!-- Referral List -->
-    <div class="bg-white rounded-lg shadow overflow-hidden mb-4">
-        <div class="p-3 bg-gray-50 border-b font-bold text-sm">My Referrals ({{ referrals|length }})</div>
-        <div class="max-h-40 overflow-y-auto">
-            {% for ref in referrals %}
-            <div class="p-3 border-b text-sm flex justify-between">
-                <span>{{ ref.email.split('@')[0] }}***</span>
-                <span class="text-gray-400 text-xs">Joined</span>
-            </div>
-            {% else %}
-            <div class="p-4 text-center text-gray-400 text-xs">No referrals yet.</div>
-            {% endfor %}
-        </div>
+    <!-- Referral Stats -->
+    <div class="mt-4 pt-4 border-t border-white/20 flex justify-between text-sm">
+        <span>Total Referrals: <strong>{{ user.referral_count }}</strong></span>
+        <span>Earned: <strong>৳ {{ user.referral_count * 5 }}</strong></span>
+    </div>
+</div>
+
+<!-- Tabs for History/Referrals -->
+<div x-data="{ tab: 'history' }">
+    <div class="flex border-b mb-4 bg-white rounded-t-lg shadow-sm">
+        <button onclick="showTab('history')" id="btn-history" class="flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600">
+            Transaction History
+        </button>
+        <button onclick="showTab('referrals')" id="btn-referrals" class="flex-1 py-3 text-sm font-bold text-gray-500 hover:text-blue-500">
+            My Team ({{ referrals|length }})
+        </button>
     </div>
 
-    <script>
-        function copyRef() {
-            var copyText = document.getElementById("refLink");
-            copyText.select();
-            document.execCommand("copy");
-            alert("Link Copied! Share it now.");
-        }
-    </script>
-
-    <!-- History -->
-    <h3 class="font-bold text-gray-700 mt-4">Recent Activity</h3>
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <!-- History Table -->
+    <div id="tab-history" class="bg-white rounded-b-lg shadow overflow-hidden">
         <table class="w-full text-sm text-left">
-            <thead class="bg-gray-50">
+            <thead class="bg-gray-50 text-gray-600">
                 <tr>
-                    <th class="p-3">Type</th>
+                    <th class="p-3">Details</th>
                     <th class="p-3 text-right">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 {% for h in history %}
-                <tr class="border-b">
-                    <td class="p-3 capitalize">{{ h.type }}</td>
-                    <td class="p-3 text-right font-bold {{ 'text-red-500' if h.amount < 0 else 'text-green-500' }}">
-                        {{ h.amount }}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3">
+                        <p class="font-bold capitalize text-gray-700">{{ h.type.replace('_', ' ') }}</p>
+                        <p class="text-xs text-gray-400">{{ h.timestamp.strftime('%d %b, %I:%M %p') }}</p>
+                        {% if h.description %}
+                        <p class="text-xs text-gray-500 italic">{{ h.description }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="p-3 text-right">
+                        <span class="font-bold {{ 'text-red-500' if h.amount < 0 else 'text-green-600' }}">
+                            {{ '+' if h.amount > 0 else '' }}{{ h.amount }}
+                        </span>
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="2" class="p-3 text-center text-gray-400">No history found</td></tr>
+                <tr><td colspan="2" class="p-6 text-center text-gray-400">No transactions yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Referral List Table (Hidden by default) -->
+    <div id="tab-referrals" class="bg-white rounded-b-lg shadow overflow-hidden hidden">
+        <table class="w-full text-sm text-left">
+            <thead class="bg-gray-50 text-gray-600">
+                <tr>
+                    <th class="p-3">User</th>
+                    <th class="p-3 text-right">Joined Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ref in referrals %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3">
+                        <p class="font-bold text-gray-700">{{ ref.name }}</p>
+                        <p class="text-xs text-gray-500">{{ ref.email }}</p>
+                    </td>
+                    <td class="p-3 text-right text-xs text-gray-400">
+                        {{ ref.joined.strftime('%d %b %Y') }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="2" class="p-6 text-center text-gray-400">No referrals yet. Share your link!</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+    function copyRef() {
+        var copyText = document.getElementById("refLink");
+        copyText.select();
+        document.execCommand("copy");
+        alert("Referral link copied!");
+    }
+
+    function showTab(tabName) {
+        // Simple JS Tab Switcher
+        document.getElementById('tab-history').classList.add('hidden');
+        document.getElementById('tab-referrals').classList.add('hidden');
+        
+        document.getElementById('btn-history').className = "flex-1 py-3 text-sm font-bold text-gray-500 border-b-2 border-transparent hover:text-blue-500";
+        document.getElementById('btn-referrals').className = "flex-1 py-3 text-sm font-bold text-gray-500 border-b-2 border-transparent hover:text-blue-500";
+
+        if(tabName === 'history') {
+            document.getElementById('tab-history').classList.remove('hidden');
+            document.getElementById('btn-history').className = "flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600";
+        } else {
+            document.getElementById('tab-referrals').classList.remove('hidden');
+            document.getElementById('btn-referrals').className = "flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600";
+        }
+    }
+</script>
+
 {% endblock %}
