@@ -1,24 +1,71 @@
+
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="text-3xl font-bold mb-6 text-red-600">Admin Panel</h1>
+<h1 class="text-3xl font-bold mb-6 text-gray-800">Admin Panel</h1>
 
-<!-- Create Task -->
-<div class="bg-white p-6 rounded shadow mb-8">
-    <h3 class="font-bold mb-4">Create New Task</h3>
+<!-- Create Task Form -->
+<div class="bg-white p-6 rounded-xl shadow-md mb-8 border border-gray-200">
+    <div class="flex items-center mb-4 text-blue-600">
+        <i class="fas fa-plus-circle text-2xl mr-2"></i>
+        <h3 class="font-bold text-lg">Create New Task</h3>
+    </div>
+    
     <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input type="text" name="title" placeholder="Task Title" required class="border p-2 rounded">
-        <input type="text" name="task_type" placeholder="Type (e.g. YouTube)" required class="border p-2 rounded">
-        <input type="number" name="reward" placeholder="Reward Amount" step="0.01" required class="border p-2 rounded">
-        <select name="proof_requirement" class="border p-2 rounded">
-            <option value="link">Link/Text Proof</option>
-            <option value="image">Screenshot Proof</option>
-        </select>
-        <textarea name="description" placeholder="Instructions" class="border p-2 rounded md:col-span-2"></textarea>
-        <button type="submit" name="create_task" class="bg-gray-800 text-white p-2 rounded md:col-span-2">Create Task</button>
+        <!-- Title -->
+        <div class="col-span-2 md:col-span-1">
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Task Title</label>
+            <input type="text" name="title" placeholder="e.g. Subscribe my Channel" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Reward -->
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Reward (BDT)</label>
+            <input type="number" name="reward" placeholder="e.g. 2.50" step="0.01" required class="w-full border p-2 rounded focus:ring-2 focus:ring-green-500">
+        </div>
+
+        <!-- Category -->
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
+            <select name="category" class="w-full border p-2 rounded bg-white">
+                <option value="youtube">YouTube</option>
+                <option value="facebook">Facebook</option>
+                <option value="telegram">Telegram</option>
+                <option value="website">Website Visit</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+
+        <!-- Proof Type -->
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Proof Type</label>
+            <select name="proof_requirement" class="w-full border p-2 rounded bg-white">
+                <option value="image">Screenshot (Image)</option>
+                <option value="link">Text / Link / Code</option>
+            </select>
+        </div>
+
+        <!-- Task Link -->
+        <div class="col-span-2">
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Task Link (User will visit here)</label>
+            <input type="url" name="task_link" placeholder="https://youtube.com/..." required class="w-full border p-2 rounded">
+        </div>
+
+        <!-- Description -->
+        <div class="col-span-2">
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Instructions / Steps</label>
+            <textarea name="description" placeholder="Step 1: Go to link&#10;Step 2: Subscribe&#10;Step 3: Take Screenshot" rows="3" class="w-full border p-2 rounded"></textarea>
+        </div>
+
+        <button type="submit" name="create_task" class="col-span-2 bg-gray-900 text-white font-bold py-3 rounded hover:bg-black transition">
+            Publish Task
+        </button>
     </form>
 </div>
 
+<!-- ... (বাকি Admin Panel কোড - Withdraw/Approval Table একই থাকবে) ... -->
+<!-- Pending Withdraws এবং Task Submissions এর টেবিলগুলো এখানে থাকবে -->
+{% endblock %}
 <!-- Pending Withdraws -->
 <h3 class="font-bold text-lg mb-2">Pending Withdrawals</h3>
 <div class="bg-white rounded shadow overflow-x-auto mb-8">
