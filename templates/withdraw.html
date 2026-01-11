@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-4">Withdraw Funds</h2>
+
+<div class="bg-white p-6 rounded-lg shadow-md mb-20">
+    <div class="text-center mb-6">
+        <p class="text-gray-500">Available Balance</p>
+        <h1 class="text-3xl font-bold text-green-600">৳ {{ user.balance }}</h1>
+    </div>
+
+    <form method="POST" class="space-y-4">
+        <div>
+            <label class="block text-sm font-bold mb-1">Method</label>
+            <select name="method" class="w-full border p-3 rounded bg-gray-50">
+                <option value="bkash">bKash</option>
+                <option value="nagad">Nagad</option>
+                <option value="rocket">Rocket</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold mb-1">Wallet Number</label>
+            <input type="number" name="number" placeholder="017xxxxxxxx" required class="w-full border p-3 rounded">
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold mb-1">Amount (Min 50)</label>
+            <input type="number" name="amount" placeholder="Amount" min="50" required class="w-full border p-3 rounded">
+        </div>
+
+        <button type="submit" class="w-full bg-green-600 text-white py-3 rounded font-bold hover:bg-green-700">Withdraw Now</button>
+    </form>
+</div>
+{% endblock %}
