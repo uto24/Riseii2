@@ -422,12 +422,29 @@ def admin_panel():
 
     users_stream = db.collection('users').order_by('created_at', direction=Query.DESCENDING).limit(20).stream()
     users_list = [{'id': d.id, **d.to_dict()} for d in users_stream]
+# Admin Panel Function এর ভেতরে:
+    act_reqs = db.collection('activation_requests').where(field_path='status', op_string='==', value='pending').stream()
+    activation_requests = [{'id': d.id, **d.to_dict()} for d in act_reqs]
+    
 
     return render_template('admin.html', 
                            pending_tasks=pending_tasks, 
                            pending_withdraws=pending_withdraws,
                            active_tasks=active_tasks,
-                           users=users_list)
+                           users=users_list,
+                           ctivation_requests=activation_requests)
+
+@app.route(f'/{ADMIN_ROUTE}/approve_activation/<req_id>/<user_uid>')
+@admin_required
+def approve_activation(req_id, user_uid):
+    # 1. User কে Active করা
+    db.collection('users').document(user_uid).update({'is_active': True})
+    
+    # 2. Request status update
+    db.collection('activation_requests').document(req_id).update({'status': 'approved'})
+    
+    flash("User Account Activated Successfully!", "success")
+    return redirect(f'/{ADMIN_ROUTE}')
 @app.route(f'/{ADMIN_ROUTE}/approve_task/<submission_id>')
 @admin_required
 def approve_task(submission_id):
