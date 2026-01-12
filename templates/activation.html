@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-lg mt-4 mb-20">
+    <!-- Header -->
+    <div class="text-center mb-6">
+        <a href="/dashboard" class="text-blue-600 text-sm font-bold mb-4 inline-block">
+            <i class="fas fa-arrow-left"></i> ড্যাশবোর্ডে ফিরে যান
+        </a>
+        <h1 class="text-2xl font-bold text-gray-800">একাউন্ট অ্যাক্টিভেশন (এককালীন: ৩০৳)</h1>
+        <div class="h-1 w-20 bg-blue-600 mx-auto mt-2 rounded"></div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="bg-blue-50 p-5 rounded-lg border border-blue-100 mb-6 text-sm text-gray-700 space-y-3">
+        <p>আপনার একাউন্টটি সম্পূর্ণভাবে চালু করতে এবং সকল কাজ শুরু করতে, অনুগ্রহ করে নিচের নির্দেশনা অনুযায়ী এককালীন অ্যাক্টিভেশন ফি প্রদান করুন।</p>
+        
+        <h3 class="font-bold text-blue-800 mt-2">কেন এই অ্যাক্টিভেশন ফি প্রয়োজন?</h3>
+        <p>আমরা একটি serious এবং পেশাদার কমিউনিটি তৈরি করতে প্রতিশ্রুতিবদ্ধ। এই এককালীন ফি কয়েকটি গুরুত্বপূর্ণ উদ্দেশ্য সাধন করে:</p>
+        <ul class="list-disc pl-5 space-y-1">
+            <li><strong>স্প্যাম প্রতিরোধ:</strong> এটি স্বয়ংক্রিয় বট এবং অ-serious ব্যবহারকারীদের রেজিস্টার করা থেকে বিরত রাখে।</li>
+            <li><strong>উন্নত পরিষেবা:</strong> এই ফি আমাদের সার্ভার রক্ষণাবেক্ষণ এবং আপনাকে আরও ভালো পরিষেবা প্রদানে সাহায্য করে।</li>
+            <li><strong>এক্সক্লুসিভ অ্যাক্সেস:</strong> সফল অ্যাক্টিভেশনের পর আপনি আমাদের সকল প্রিমিয়াম কাজ এবং ফিচার ব্যবহার করার সুযোগ পাবেন।</li>
+        </ul>
+        <p class="font-bold text-green-700">এককালীন পেমেন্ট: মনে রাখবেন, এটি শুধুমাত্র একবারই প্রদান করতে হবে। এরপর আর কোনো ফি নেই।</p>
+    </div>
+
+    <!-- Payment Instruction -->
+    <div class="bg-yellow-50 p-5 rounded-lg border border-yellow-200 mb-6 text-center">
+        <h3 class="font-bold text-lg mb-2">পেমেন্ট নির্দেশনা</h3>
+        <p class="text-sm mb-3">নিচের নম্বরে <strong>৩০ টাকা</strong> সেন্ড মানি (Send Money) করুন এবং তারপর আপনার পেমেন্টের তথ্য নিচের ফর্মে সঠিকভাবে জমা দিন।</p>
+        
+        <div class="bg-white border-2 border-dashed border-gray-400 p-3 rounded-lg inline-block relative">
+            <span id="copyNum" class="text-2xl font-bold text-gray-800 tracking-wider">01912107604</span>
+            <button onclick="copyNumber()" class="ml-2 text-blue-600 hover:text-blue-800">
+                <i class="fas fa-copy"></i>
+            </button>
+        </div>
+        <p id="copyMsg" class="text-green-600 text-xs mt-1 hidden">নম্বর কপি করা হয়েছে!</p>
+    </div>
+
+    <!-- Submission Form -->
+    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+        <h3 class="font-bold text-lg mb-4 border-b pb-2">পেমেন্টের তথ্য জমা দিন</h3>
+        <form action="/submit_activation" method="POST" class="space-y-4">
+            
+            <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">পেমেন্ট মেথড</label>
+                <select name="method" class="w-full border p-3 rounded bg-white">
+                    <option value="bkash">bKash</option>
+                    <option value="nagad">Nagad</option>
+                    <option value="rocket">Rocket</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">আপনার সেন্ডার নম্বর</label>
+                <input type="number" name="sender_number" placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন" required class="w-full border p-3 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">ট্রানজেকশন আইডি (TrxID)</label>
+                <input type="text" name="trx_id" placeholder="TrxID (e.g. 9H56...)" required class="w-full border p-3 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition shadow-lg">
+                তথ্য জমা দিন
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function copyNumber() {
+        const num = document.getElementById('copyNum').innerText;
+        navigator.clipboard.writeText(num);
+        document.getElementById('copyMsg').classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('copyMsg').classList.add('hidden');
+        }, 2000);
+    }
+</script>
+{% endblock %}
