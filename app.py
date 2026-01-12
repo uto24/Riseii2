@@ -289,7 +289,6 @@ def tasks():
     
     return render_template('tasks.html', tasks=tasks_list)
 
-
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
@@ -297,41 +296,74 @@ def withdraw():
     user_ref = db.collection('users').document(uid)
     user = user_ref.get().to_dict()
     
+    # --- 1. CONDITION CHECK ---
+    # যদি ব্যালেন্স ২৫০ এর কম হয় অথবা রেফার ৩ এর কম হয়
+    if user.get('balance', 0) < 250 or user.get('referral_count', 0) < 3:
+        flash("উইথড্র করার জন্য ২৫০ টাকা ব্যালেন্স এবং ৩ জন রেফার প্রয়োজন।", "error")
+        return redirect(url_for('dashboard'))
+
+    # --- 2. ACTIVATION CHECK ---
+    # শর্ত পূরণ হয়েছে, কিন্তু একাউন্ট অ্যাক্টিভ না হলে পেমেন্ট পেজ দেখাবে
+    if not user.get('is_active', False): 
+        # is_active ফিল্ড না থাকলে বা False হলে
+        return render_template('activation.html')
+
+    # --- 3. NORMAL WITHDRAW FORM ---
+    # সব শর্ত পূরণ এবং একাউন্ট অ্যাক্টিভ থাকলে উইথড্র করতে পারবে
     if request.method == 'POST':
-        amount = float(request.form.get('amount'))
-        method = request.form.get('method')
-        number = request.form.get('number')
-        
-        if amount < 50: # Example min limit
-            flash("Minimum withdraw is 50 BDT.", "error")
-        elif user['balance'] < amount:
-            flash("Insufficient balance.", "error")
-        else:
-            # Create Request
-            db.collection('withdraw_requests').add({
-                'uid': uid,
-                'email': session['email'],
-                'amount': amount,
-                'method': method,
-                'number': number,
-                'status': 'pending',
-                'timestamp': datetime.datetime.now()
-            })
-            # Deduct Balance Immediately (safe hold)
-            user_ref.update({'balance': user['balance'] - amount})
+        try:
+            amount = float(request.form.get('amount'))
+            method = request.form.get('method')
+            number = request.form.get('number')
             
-            # Log Transaction
-            db.collection('balance_history').add({
-                'uid': uid,
-                'type': 'withdraw_hold',
-                'amount': -amount,
-                'timestamp': datetime.datetime.now()
-            })
-            
-            flash("Withdraw request sent.", "success")
+            if amount < 50: 
+                flash("Minimum withdraw is 50 BDT.", "error")
+            elif user['balance'] < amount:
+                flash("Insufficient balance.", "error")
+            else:
+                db.collection('withdraw_requests').add({
+                    'uid': uid,
+                    'email': session['email'],
+                    'amount': amount,
+                    'method': method,
+                    'number': number,
+                    'status': 'pending',
+                    'timestamp': datetime.datetime.now()
+                })
+                user_ref.update({'balance': user['balance'] - amount})
+                
+                db.collection('balance_history').add({
+                    'uid': uid,
+                    'type': 'withdraw_hold',
+                    'amount': -amount,
+                    'timestamp': datetime.datetime.now()
+                })
+                flash("Withdraw request sent.", "success")
+        except ValueError:
+            flash("Invalid amount entered.", "error")
             
     return render_template('withdraw.html', user=user)
 
+
+# --- NEW ROUTE: ACTIVATION SUBMISSION ---
+@app.route('/submit_activation', methods=['POST'])
+@login_required
+def submit_activation():
+    uid = session['user_id']
+    
+    # ডাটাবেসে রিকোয়েস্ট জমা রাখা (Admin Panel এ দেখানোর জন্য)
+    db.collection('activation_requests').add({
+        'uid': uid,
+        'email': session['email'],
+        'method': request.form.get('method'),
+        'sender_number': request.form.get('sender_number'),
+        'trx_id': request.form.get('trx_id'),
+        'status': 'pending',
+        'timestamp': datetime.datetime.now()
+    })
+    
+    flash("অ্যাক্টিভেশন রিকোয়েস্ট জমা হয়েছে! অ্যাডমিন অ্যাপ্রুভ করলে আপনি উইথড্র করতে পারবেন।", "success")
+    return redirect(url_for('dashboard'))
 # --- ADMIN ROUTES ---
 # --- ADMIN ROUTE ---
 @app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])
