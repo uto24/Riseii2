@@ -479,14 +479,35 @@ def reject_task(submission_id):
     db.collection('task_submissions').document(submission_id).update({'status': 'rejected'})
     flash("Task Rejected.", "success")
     return redirect(url_for('admin_panel'))
-
 @app.route(f'/{ADMIN_ROUTE}/approve_withdraw/<req_id>')
 @admin_required
 def approve_withdraw(req_id):
-    db.collection('withdraw_requests').document(req_id).update({'status': 'paid'})
-    flash("Withdraw marked as PAID.", "success")
-    return redirect(url_for('admin_panel'))
-
+    # ১. রিকোয়েস্ট ডাটা আনা
+    req_ref = db.collection('withdraw_requests').document(req_id)
+    req = req_ref.get().to_dict()
+    
+    if req and req['status'] == 'pending':
+        # ২. স্ট্যাটাস আপডেট করা (Request Table)
+        req_ref.update({'status': 'paid'})
+        
+        # ৩. হিস্টোরি আপডেট করা (যাতে ড্যাশবোর্ডে Hold না দেখায়)
+        # ইউজারের ওই নির্দিষ্ট পরিমাণের 'Hold' এন্ট্রিটি খুঁজে বের করা
+        history_query = db.collection('balance_history')\
+            .where(field_path='uid', op_string='==', value=req['uid'])\
+            .where(field_path='amount', op_string='==', value=-req['amount'])\
+            .where(field_path='type', op_string='==', value='withdraw_hold')\
+            .limit(1).stream()
+            
+        for doc in history_query:
+            # Hold কে Paid এ পরিবর্তন করা
+            doc.reference.update({
+                'type': 'withdraw_paid',
+                'description': f"Paid via {req['method']} ({req['number']})"
+            })
+            
+        flash("Withdraw marked as PAID & History Updated.", "success")
+    
+    return redirect(f'/{ADMIN_ROUTE}')
 @app.route(f'/{ADMIN_ROUTE}/reject_withdraw/<req_id>')
 @admin_required
 def reject_withdraw(req_id):
