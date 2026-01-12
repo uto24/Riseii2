@@ -92,12 +92,21 @@
                     <th class="p-3">Details</th>
                     <th class="p-3 text-right">Amount</th>
                 </tr>
-            </thead>
-            <tbody>
+            </thead><tbody>
                 {% for h in history %}
                 <tr class="border-b hover:bg-gray-50">
                     <td class="p-3">
-                        <p class="font-bold capitalize text-gray-700">{{ h.type.replace('_', ' ') }}</p>
+                        <!-- স্ট্যাটাস অনুযায়ী টেক্সট ও কালার -->
+                        {% if h.type == 'withdraw_hold' %}
+                            <p class="font-bold text-yellow-600">Checking...</p>
+                        {% elif h.type == 'withdraw_paid' %}
+                            <p class="font-bold text-green-600">Withdraw Successful</p>
+                        {% elif h.type == 'task_earning' %}
+                            <p class="font-bold text-blue-600">Task Earning</p>
+                        {% else %}
+                            <p class="font-bold capitalize text-gray-700">{{ h.type.replace('_', ' ') }}</p>
+                        {% endif %}
+
                         <p class="text-xs text-gray-400">{{ h.timestamp.strftime('%d %b, %I:%M %p') }}</p>
                         {% if h.description %}
                         <p class="text-xs text-gray-500 italic">{{ h.description }}</p>
