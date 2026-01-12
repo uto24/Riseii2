@@ -44,5 +44,66 @@
     </nav>
     {% endif %}
 
+    <!-- ============================== -->
+    <!-- 🎧 SUPPORT WIDGET START -->
+    <!-- ============================== -->
+    <div class="fixed bottom-20 right-4 z-50 flex flex-col items-end">
+        
+        <!-- Support Options (Initially Hidden) -->
+        <div id="support-menu" class="hidden flex-col gap-3 mb-4 transition-all duration-300 transform scale-95 origin-bottom-right">
+            
+            <!-- Telegram Link -->
+            <a href="https://t.me/YOUR_TELEGRAM_USERNAME" target="_blank" class="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition">
+                <span class="text-sm font-bold">Telegram</span>
+                <i class="fab fa-telegram-plane text-xl"></i>
+            </a>
+
+            <!-- WhatsApp Link -->
+            <a href="https://wa.me/8801xxxxxxxxx" target="_blank" class="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-green-600 transition">
+                <span class="text-sm font-bold">WhatsApp</span>
+                <i class="fab fa-whatsapp text-xl"></i>
+            </a>
+
+            <!-- Email Link -->
+            <a href="mailto:support@riseii.com" class="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-red-600 transition">
+                <span class="text-sm font-bold">Email</span>
+                <i class="fas fa-envelope text-xl"></i>
+            </a>
+        </div>
+
+        <!-- Main Toggle Button -->
+        <button onclick="toggleSupport()" class="bg-gray-900 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition duration-300 animate-bounce border-2 border-white">
+            <i class="fas fa-headset text-2xl" id="support-icon"></i>
+            <i class="fas fa-times text-2xl hidden" id="close-icon"></i>
+        </button>
+    </div>
+
+    <script>
+        function toggleSupport() {
+            const menu = document.getElementById('support-menu');
+            const supIcon = document.getElementById('support-icon');
+            const closeIcon = document.getElementById('close-icon');
+
+            if (menu.classList.contains('hidden')) {
+                // Show Menu
+                menu.classList.remove('hidden');
+                menu.classList.add('flex');
+                supIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+            } else {
+                // Hide Menu
+                menu.classList.add('hidden');
+                menu.classList.remove('flex');
+                supIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            }
+        }
+    </script>
+    <!-- ============================== -->
+    <!-- 🎧 SUPPORT WIDGET END -->
+    <!-- ============================== -->
+
+</body>
+</html>
 </body>
 </html>
