@@ -50,9 +50,12 @@
                 <p class="whitespace-pre-line">{{ task.description }}</p>
             </div>
 
-            <a href="{{ task.task_link }}" target="_blank" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded mb-4 transition">
-                <i class="fas fa-external-link-alt mr-2"></i> Open Job Link
-            </a>
+           <!-- লিংক থাকলে বাটন দেখাবে, না থাকলে দেখাবে না -->
+{% if task.task_link %}
+    <a href="{{ task.task_link }}" target="_blank" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded mb-4 transition">
+        <i class="fas fa-external-link-alt mr-2"></i> Open Job Link
+    </a>
+{% endif %}
 
             <!-- ✅ CHANGE HERE: যদি কাজ করা হয়ে থাকে, ফর্ম দেখাবো না -->
             {% if task.is_done %}
