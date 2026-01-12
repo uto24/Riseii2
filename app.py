@@ -333,32 +333,69 @@ def withdraw():
     return render_template('withdraw.html', user=user)
 
 # --- ADMIN ROUTES ---
+# --- ADMIN ROUTE ---
 @app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])
 @admin_required
 def admin_panel():
     # 1. Handle Task Creation
-    if request.method == 'POST' and 'create_task' in request.form:
-        db.collection('tasks').add({
-            'title': request.form.get('title'),
-            'description': request.form.get('description'),
-            'reward': float(request.form.get('reward')),
-            'task_type': request.form.get('task_type'), # e.g. "YouTube Subscribe"
-            'proof_requirement': request.form.get('proof_requirement') # "image" or "link"
-        })
-        flash("Task created.", "success")
-    
-    # Data Fetching (FIXED: Cleaned up duplicates and used keyword args)
-    pending_tasks_stream = db.collection('task_submissions').where(field_path='status', op_string='==', value='pending').stream()
-    pending_withdraws_stream = db.collection('withdraw_requests').where(field_path='status', op_string='==', value='pending').stream()
-    
-    # FIXED: Added logic to convert streams to lists so template can read them
-    tasks_data = [{'id': d.id, **d.to_dict()} for d in pending_tasks_stream]
-    withdraws_data = [{'id': d.id, **d.to_dict()} for d in pending_withdraws_stream]
-    
-    return render_template('admin.html', 
-                           pending_tasks=tasks_data, 
-                           pending_withdraws=withdraws_data)
+    if request.method == 'POST':
+        if 'create_task' in request.form:
+            try:
+                # লিংক অপশনাল রাখা হলো
+                task_link = request.form.get('task_link')
+                if not task_link:
+                    task_link = ""  # লিংক না থাকলে খালি স্ট্রিং যাবে
 
+                db.collection('tasks').add({
+                    'title': request.form.get('title'),
+                    'category': request.form.get('category'),
+                    'task_link': task_link,  # Optional Link
+                    'description': request.form.get('description'),
+                    'reward': float(request.form.get('reward')),
+                    'proof_requirement': request.form.get('proof_requirement'),
+                    'created_at': datetime.datetime.now()
+                })
+                flash("New Task Published!", "success")
+            except Exception as e:
+                flash(f"Error creating task: {e}", "error")
+
+        # 2. Handle Balance Update
+        elif 'update_balance' in request.form:
+            target_uid = request.form.get('target_uid')
+            new_amount = float(request.form.get('amount'))
+            action_type = request.form.get('action_type')
+            
+            user_ref = db.collection('users').document(target_uid)
+            user_data = user_ref.get().to_dict()
+            
+            if user_data:
+                current_bal = user_data.get('balance', 0.0)
+                if action_type == 'add':
+                    final_bal = current_bal + new_amount
+                else:
+                    final_bal = current_bal - new_amount
+                
+                user_ref.update({'balance': final_bal})
+                flash("User balance updated.", "success")
+
+    # --- DATA FETCHING ---
+    p_tasks = db.collection('task_submissions').where(field_path='status', op_string='==', value='pending').stream()
+    pending_tasks = [{'id': d.id, **d.to_dict()} for d in p_tasks]
+
+    p_withdraws = db.collection('withdraw_requests').where(field_path='status', op_string='==', value='pending').stream()
+    pending_withdraws = [{'id': d.id, **d.to_dict()} for d in p_withdraws]
+
+    all_tasks_stream = db.collection('tasks').order_by('created_at', direction=Query.DESCENDING).stream()
+    active_tasks = [{'id': d.id, **d.to_dict()} for d in all_tasks_stream]
+
+    users_stream = db.collection('users').order_by('created_at', direction=Query.DESCENDING).limit(20).stream()
+    users_list = [{'id': d.id, **d.to_dict()} for d in users_stream]
+
+    return render_template('admin.html', 
+                           pending_tasks=pending_tasks, 
+                           pending_withdraws=pending_withdraws,
+                           active_tasks=active_tasks,
+                           users=users_list)
 @app.route(f'/{ADMIN_ROUTE}/approve_task/<submission_id>')
 @admin_required
 def approve_task(submission_id):
