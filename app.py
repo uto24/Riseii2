@@ -364,24 +364,20 @@ def submit_activation():
     
     flash("অ্যাক্টিভেশন রিকোয়েস্ট জমা হয়েছে! অ্যাডমিন অ্যাপ্রুভ করলে আপনি উইথড্র করতে পারবেন।", "success")
     return redirect(url_for('dashboard'))
-# --- ADMIN ROUTES ---
-# --- ADMIN ROUTE ---
 @app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])
 @admin_required
 def admin_panel():
-    # 1. Handle Task Creation
+    # --- 1. HANDLE POST REQUESTS (Create Task / Update Balance) ---
     if request.method == 'POST':
         if 'create_task' in request.form:
             try:
-                # লিংক অপশনাল রাখা হলো
                 task_link = request.form.get('task_link')
-                if not task_link:
-                    task_link = ""  # লিংক না থাকলে খালি স্ট্রিং যাবে
+                if not task_link: task_link = ""
 
                 db.collection('tasks').add({
                     'title': request.form.get('title'),
                     'category': request.form.get('category'),
-                    'task_link': task_link,  # Optional Link
+                    'task_link': task_link,
                     'description': request.form.get('description'),
                     'reward': float(request.form.get('reward')),
                     'proof_requirement': request.form.get('proof_requirement'),
@@ -389,9 +385,8 @@ def admin_panel():
                 })
                 flash("New Task Published!", "success")
             except Exception as e:
-                flash(f"Error creating task: {e}", "error")
+                flash(f"Error: {e}", "error")
 
-        # 2. Handle Balance Update
         elif 'update_balance' in request.form:
             target_uid = request.form.get('target_uid')
             new_amount = float(request.form.get('amount'))
@@ -399,41 +394,41 @@ def admin_panel():
             
             user_ref = db.collection('users').document(target_uid)
             user_data = user_ref.get().to_dict()
-            
             if user_data:
                 current_bal = user_data.get('balance', 0.0)
-                if action_type == 'add':
-                    final_bal = current_bal + new_amount
-                else:
-                    final_bal = current_bal - new_amount
-                
+                final_bal = (current_bal + new_amount) if action_type == 'add' else (current_bal - new_amount)
                 user_ref.update({'balance': final_bal})
                 flash("User balance updated.", "success")
 
-    # --- DATA FETCHING ---
+    # --- 2. DATA FETCHING (ডাটা আনা) ---
+    
+    # Pending Tasks
     p_tasks = db.collection('task_submissions').where(field_path='status', op_string='==', value='pending').stream()
     pending_tasks = [{'id': d.id, **d.to_dict()} for d in p_tasks]
 
+    # Pending Withdraws
     p_withdraws = db.collection('withdraw_requests').where(field_path='status', op_string='==', value='pending').stream()
     pending_withdraws = [{'id': d.id, **d.to_dict()} for d in p_withdraws]
 
+    # ✅ NEW: Activation Requests (এই অংশটি মিসিং ছিল)
+    act_reqs = db.collection('activation_requests').where(field_path='status', op_string='==', value='pending').stream()
+    activation_requests = [{'id': d.id, **d.to_dict()} for d in act_reqs]
+
+    # Active Tasks
     all_tasks_stream = db.collection('tasks').order_by('created_at', direction=Query.DESCENDING).stream()
     active_tasks = [{'id': d.id, **d.to_dict()} for d in all_tasks_stream]
 
+    # Users List
     users_stream = db.collection('users').order_by('created_at', direction=Query.DESCENDING).limit(20).stream()
     users_list = [{'id': d.id, **d.to_dict()} for d in users_stream]
-# Admin Panel Function এর ভেতরে:
-    act_reqs = db.collection('activation_requests').where(field_path='status', op_string='==', value='pending').stream()
-    activation_requests = [{'id': d.id, **d.to_dict()} for d in act_reqs]
-    
 
     return render_template('admin.html', 
                            pending_tasks=pending_tasks, 
                            pending_withdraws=pending_withdraws,
+                           activation_requests=activation_requests, # ✅ ডাটা পাস করা হলো
                            active_tasks=active_tasks,
-                           users=users_list,
-                           ctivation_requests=activation_requests)
-
+                           users=users_list)
+    
 @app.route(f'/{ADMIN_ROUTE}/approve_activation/<req_id>/<user_uid>')
 @admin_required
 def approve_activation(req_id, user_uid):
@@ -445,6 +440,7 @@ def approve_activation(req_id, user_uid):
     
     flash("User Account Activated Successfully!", "success")
     return redirect(f'/{ADMIN_ROUTE}')
+    
 @app.route(f'/{ADMIN_ROUTE}/approve_task/<submission_id>')
 @admin_required
 def approve_task(submission_id):
