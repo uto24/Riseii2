@@ -523,10 +523,11 @@ def admin_panel():
     act_reqs = db.collection('activation_requests').where(field_path='status', op_string='==', value='pending').stream()
     activation_requests = [{'id': d.id, **d.to_dict()} for d in act_reqs]
 
-    # Active Tasks
-    all_tasks_stream = db.collection('tasks').order_by('created_at', direction=Query.DESCENDING).stream()
-    active_tasks = [{'id': d.id, **d.to_dict()} for d in all_tasks_stream]
-
+# এখানে .limit(20) যোগ করা হয়েছে
+all_tasks_stream = db.collection('tasks')\
+    .order_by('created_at', direction=Query.DESCENDING)\
+    .limit(20)\
+    .stream()
     # Users List
     users_stream = db.collection('users').order_by('created_at', direction=Query.DESCENDING).limit(20).stream()
     users_list = [{'id': d.id, **d.to_dict()} for d in users_stream]
