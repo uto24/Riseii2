@@ -473,11 +473,12 @@ def submit_activation():
     
     flash("অ্যাক্টিভেশন রিকোয়েস্ট জমা হয়েছে! অ্যাডমিন অ্যাপ্রুভ করলে আপনি উইথড্র করতে পারবেন।", "success")
     return redirect(url_for('dashboard'))
-@app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])
+    @app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])
 @admin_required
 def admin_panel():
-    # --- 1. HANDLE POST REQUESTS (Create Task / Update Balance) ---
+    # --- 1. HANDLE POST REQUESTS ---
     if request.method == 'POST':
+        # Create Task
         if 'create_task' in request.form:
             try:
                 task_link = request.form.get('task_link')
@@ -496,6 +497,7 @@ def admin_panel():
             except Exception as e:
                 flash(f"Error: {e}", "error")
 
+        # Update User Balance
         elif 'update_balance' in request.form:
             target_uid = request.form.get('target_uid')
             new_amount = float(request.form.get('amount'))
@@ -508,8 +510,19 @@ def admin_panel():
                 final_bal = (current_bal + new_amount) if action_type == 'add' else (current_bal - new_amount)
                 user_ref.update({'balance': final_bal})
                 flash("User balance updated.", "success")
+        
+        # Publish Notice
+        elif 'publish_notice' in request.form:
+            title = request.form.get('title')
+            message = request.form.get('message')
+            db.collection('notices').add({
+                'title': title,
+                'message': message,
+                'date': datetime.datetime.now()
+            })
+            flash("Notice Published Successfully!", "success")
 
-    # --- 2. DATA FETCHING (ডাটা আনা) ---
+    # --- 2. DATA FETCHING ---
     
     # Pending Tasks
     p_tasks = db.collection('task_submissions').where(field_path='status', op_string='==', value='pending').stream()
@@ -519,28 +532,28 @@ def admin_panel():
     p_withdraws = db.collection('withdraw_requests').where(field_path='status', op_string='==', value='pending').stream()
     pending_withdraws = [{'id': d.id, **d.to_dict()} for d in p_withdraws]
 
-    # ✅ NEW: Activation Requests (এই অংশটি মিসিং ছিল)
+    # Activation Requests
     act_reqs = db.collection('activation_requests').where(field_path='status', op_string='==', value='pending').stream()
     activation_requests = [{'id': d.id, **d.to_dict()} for d in act_reqs]
 
-    # Active Tasks# এখানে .limit(20) যোগ করা হয়েছে
-all_tasks_stream = db.collection('tasks')\
-    .order_by('created_at', direction=Query.DESCENDING)\
-    .limit(20)\
-    .stream()
+    # Active Tasks (Limited to 20 to prevent error)
+    # কোড এক লাইনে রাখা হয়েছে যাতে Indentation Error না হয়
+    all_tasks_stream = db.collection('tasks').order_by('created_at', direction=Query.DESCENDING).limit(20).stream()
     active_tasks = [{'id': d.id, **d.to_dict()} for d in all_tasks_stream]
 
-    # Users List
-    users_stream = db.collection('users').order_by('created_at', direction=Query.DESCENDING).limit(20).stream()
-    users_list = [{'id': d.id, **d.to_dict()} for d in users_stream]
+    # Admin Notices
+    notices_stream = db.collection('notices').order_by('date', direction=Query.DESCENDING).stream()
+    admin_notices = [{'id': n.id, **n.to_dict()} for n in notices_stream]
+
+    # Auto Cleanup Old Data
+    cleanup_old_data()
 
     return render_template('admin.html', 
                            pending_tasks=pending_tasks, 
                            pending_withdraws=pending_withdraws,
-                           activation_requests=activation_requests, # ✅ ডাটা পাস করা হলো
+                           activation_requests=activation_requests,
                            active_tasks=active_tasks,
-                           users=users_list)
-    
+                           admin_notices=admin_notices)
 @app.route(f'/{ADMIN_ROUTE}/approve_activation/<req_id>/<user_uid>')
 @admin_required
 def approve_activation(req_id, user_uid):
