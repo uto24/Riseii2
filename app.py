@@ -473,7 +473,8 @@ def submit_activation():
     
     flash("অ্যাক্টিভেশন রিকোয়েস্ট জমা হয়েছে! অ্যাডমিন অ্যাপ্রুভ করলে আপনি উইথড্র করতে পারবেন।", "success")
     return redirect(url_for('dashboard'))
-    @app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])
+
+@app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])
 @admin_required
 def admin_panel():
     # --- 1. HANDLE POST REQUESTS ---
@@ -554,6 +555,7 @@ def admin_panel():
                            activation_requests=activation_requests,
                            active_tasks=active_tasks,
                            admin_notices=admin_notices)
+    
 @app.route(f'/{ADMIN_ROUTE}/approve_activation/<req_id>/<user_uid>')
 @admin_required
 def approve_activation(req_id, user_uid):
