@@ -512,7 +512,7 @@ def admin_panel():
                 user_ref.update({'balance': final_bal})
                 flash("User balance updated.", "success")
 
-    # --- 2. DATA FETCHING ---
+    # --- 2tt. DATA FETCHING ---
     
     # Pending Tasks
     p_tasks = db.collection('task_submissions').where(field_path='status', op_string='==', value='pending').stream()
@@ -529,9 +529,6 @@ def admin_panel():
     # Active Tasks (Limited to 20)
     all_tasks_stream = db.collection('tasks').order_by('created_at', direction=Query.DESCENDING).limit(20).stream()
     active_tasks = [{'id': d.id, **d.to_dict()} for d in all_tasks_stream]
-
-    # Auto Cleanup Old Data
-    cleanup_old_data()
 
     return render_template('admin.html', 
                            pending_tasks=pending_tasks, 
