@@ -474,7 +474,6 @@ def submit_activation():
     
     flash("অ্যাক্টিভেশন রিকোয়েস্ট জমা হয়েছে! অ্যাডমিন অ্যাপ্রুভ করলে আপনি উইথড্র করতে পারবেন।", "success")
     return redirect(url_for('dashboard'))
-
 @app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])
 @admin_required
 def admin_panel():
@@ -512,7 +511,7 @@ def admin_panel():
                 final_bal = (current_bal + new_amount) if action_type == 'add' else (current_bal - new_amount)
                 user_ref.update({'balance': final_bal})
                 flash("User balance updated.", "success")
-        
+
     # --- 2. DATA FETCHING ---
     
     # Pending Tasks
@@ -527,14 +526,9 @@ def admin_panel():
     act_reqs = db.collection('activation_requests').where(field_path='status', op_string='==', value='pending').stream()
     activation_requests = [{'id': d.id, **d.to_dict()} for d in act_reqs]
 
-    # Active Tasks (Limited to 20 to prevent error)
-    # কোড এক লাইনে রাখা হয়েছে যাতে Indentation Error না হয়
+    # Active Tasks (Limited to 20)
     all_tasks_stream = db.collection('tasks').order_by('created_at', direction=Query.DESCENDING).limit(20).stream()
     active_tasks = [{'id': d.id, **d.to_dict()} for d in all_tasks_stream]
-
-    # Admin Notices
-    notices_stream = db.collection('notices').order_by('date', direction=Query.DESCENDING).stream()
-    admin_notices = [{'id': n.id, **n.to_dict()} for n in notices_stream]
 
     # Auto Cleanup Old Data
     cleanup_old_data()
