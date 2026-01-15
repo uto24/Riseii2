@@ -31,13 +31,40 @@ firebase_config = {
 }
 
 # --- HELPERS ---
+# --- UPDATED LOGIN DECORATOR (AUTO LOGOUT BANNED USER) ---
+from functools import wraps # এটি ইম্পোর্ট করা ভালো (ফাইলের উপরে ইম্পোর্ট সেকশনে না থাকলে সমস্যা নেই, তবে রাখা ভালো)
 
 def login_required(f):
+    @wraps(f) # এটি ফাংশনের নাম ঠিক রাখে
     def wrapper(*args, **kwargs):
+        # ১. সেশন চেক
         if 'user_id' not in session:
             return redirect(url_for('auth'))
+        
+        # ২. ডাটাবেস চেক (ব্যান কিনা দেখার জন্য)
+        try:
+            uid = session['user_id']
+            # শুধুমাত্র 'is_banned' ফিল্ডটি চেক করার জন্য হালকা কুয়েরি
+            user_doc = db.collection('users').document(uid).get(['is_banned'])
+            
+            if user_doc.exists:
+                user_data = user_doc.to_dict()
+                
+                # ⛔ যদি ইউজার BANNED হয়
+                if user_data.get('is_banned', False):
+                    session.clear() # সেশন ডিলিট
+                    flash("Your account has been BANNED by Admin.", "error")
+                    return redirect(url_for('auth')) # লগইন পেজে পাঠিয়ে দিবে
+            else:
+                # যদি ডাটাবেসে ইউজার না থাকে (ডিলিট হয়ে যায়)
+                session.clear()
+                return redirect(url_for('auth'))
+                
+        except Exception as e:
+            print(f"Security Check Error: {e}")
+            # এরর হলেও সেফটির জন্য লগআউট করে দেওয়া ভালো, অথবা পাস করা যেতে পারে
+            
         return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__
     return wrapper
 
 def admin_required(f):
