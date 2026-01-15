@@ -225,6 +225,65 @@ def dashboard():
                            referrals=referrals, 
                            stats=stats,
                            uid=uid)
+
+
+
+# --- 1. NEW ROUTE FOR USER MANAGEMENT (Add this block) ---
+@app.route(f'/{ADMIN_ROUTE}/users')
+@admin_required
+def manage_users():
+    # Pagination Logic
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    offset = (page - 1) * per_page
+
+    # Fetch Users
+    users_stream = db.collection('users')\
+        .order_by('created_at', direction=Query.DESCENDING)\
+        .offset(offset)\
+        .limit(per_page)\
+        .stream()
+        
+    users_list = [{'id': d.id, **d.to_dict()} for d in users_stream]
+    
+    # Simple pagination check
+    has_next = len(users_list) == per_page
+    has_prev = page > 1
+
+    return render_template('manage_users.html', 
+                           users=users_list,
+                           page=page,
+                           has_next=has_next,
+                           has_prev=has_prev,
+                           admin_route=ADMIN_ROUTE)
+
+# --- 2. UPDATE ACTION ROUTES (Redirect to new page) ---
+
+@app.route(f'/{ADMIN_ROUTE}/ban_user/<uid>')
+@admin_required
+def ban_user(uid):
+    db.collection('users').document(uid).update({'is_banned': True})
+    flash("User BANNED.", "success")
+    # Redirect back to user list
+    return redirect(f'/{ADMIN_ROUTE}/users')
+
+@app.route(f'/{ADMIN_ROUTE}/unban_user/<uid>')
+@admin_required
+def unban_user(uid):
+    db.collection('users').document(uid).update({'is_banned': False})
+    flash("User UNBANNED.", "success")
+    return redirect(f'/{ADMIN_ROUTE}/users')
+
+@app.route(f'/{ADMIN_ROUTE}/delete_user/<uid>')
+@admin_required
+def delete_user(uid):
+    db.collection('users').document(uid).delete()
+    flash("User DELETED.", "success")
+    return redirect(f'/{ADMIN_ROUTE}/users')
+
+# --- 3. CLEAN UP ADMIN PANEL (Remove old user fetching) ---
+# আপনার admin_panel ফাংশনে 'users_list' এর অংশটুকু মুছে দিন বা নিচের মতো আপডেট করুন:
+
 @app.route('/tasks', methods=['GET', 'POST'])
 @login_required
 def tasks():
