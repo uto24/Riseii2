@@ -83,10 +83,12 @@ def session_login():
     id_token = data.get('idToken')
     ref_code = data.get('refCode')
     
+    # ফ্রন্টএন্ড থেকে নাম ও ফেসবুক লিংক আসছে
     name = data.get('name')
     fb_link = data.get('fb_link')
     
     try:
+        # ১. টোকেন ভেরিফাই করা
         decoded_token = admin_auth.verify_id_token(id_token)
         uid = decoded_token['uid']
         email = decoded_token['email']
@@ -94,15 +96,22 @@ def session_login():
         user_ref = db.collection('users').document(uid)
         user_doc = user_ref.get()
         
-        if not user_doc.exists:
-            # নাম ঠিক করা
-            if not name: name = email.split('@')[0]
+        # --- [STEP 1] BAN CHECK (যদি ইউজার আগে থেকেই থাকে) ---
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            if user_data.get('is_banned', False):
+                return jsonify({"status": "error", "message": "Your account has been BANNED by Admin."}), 403
 
-            # ডিফল্ট ভ্যালু (শুরুতে ব্যালেন্স ০)
+        # --- [STEP 2] NEW USER REGISTRATION (যদি ইউজার না থাকে) ---
+        if not user_doc.exists:
+            # নাম না থাকলে ইমেইল থেকে নাম বানানো
+            if not name: 
+                name = email.split('@')[0]
+
             initial_balance = 0.0
             referred_by_uid = None
 
-            # --- REFERRAL LOGIC START ---
+            # --- REFERRAL LOGIC ---
             if ref_code and ref_code != uid:
                 referrer_ref = db.collection('users').document(ref_code)
                 referrer_doc = referrer_ref.get()
@@ -110,10 +119,10 @@ def session_login():
                 if referrer_doc.exists:
                     referred_by_uid = ref_code
                     
-                    # ✅ 1. নতুন ইউজারকে বোনাস দেওয়া (যেমন: ৫ টাকা)
+                    # A. নতুন ইউজারকে বোনাস (৫ টাকা)
                     initial_balance = 5.0 
                     
-                    # ✅ 2. যে রেফার করেছে তাকে বোনাস দেওয়া (যেমন: ৫ টাকা)
+                    # B. যে রেফার করেছে তাকে বোনাস (৫ টাকা)
                     referrer_data = referrer_doc.to_dict()
                     new_ref_balance = referrer_data.get('balance', 0) + 5.0
                     new_ref_count = referrer_data.get('referral_count', 0) + 1
@@ -123,7 +132,7 @@ def session_login():
                         'referral_count': new_ref_count
                     })
                     
-                    # রেফারার-এর হিস্টোরি লগ
+                    # History Log (Referrer)
                     db.collection('balance_history').add({
                         'uid': ref_code,
                         'type': 'referral_bonus',
@@ -132,41 +141,46 @@ def session_login():
                         'timestamp': datetime.datetime.now()
                     })
 
-                    # নতুন ইউজারের হিস্টোরি লগ (যাতে সে বুঝতে পারে কেন টাকা পেল)
+                    # History Log (New User)
                     db.collection('balance_history').add({
                         'uid': uid,
                         'type': 'signup_bonus',
                         'amount': 5.0,
-                        'description': 'Welcome Bonus (Joined via Referral)',
+                        'description': 'Welcome Bonus',
                         'timestamp': datetime.datetime.now()
                     })
-            # --- REFERRAL LOGIC END ---
+            # --- END REFERRAL LOGIC ---
 
-            # ডাটাবেসে নতুন ইউজার তৈরি
+            # নতুন ইউজার সেভ করা
             new_user_data = {
                 'email': email,
                 'name': name,
                 'fb_link': fb_link,
-                'balance': initial_balance,  # বোনাস সহ ব্যালেন্স সেট হবে
+                'balance': initial_balance,
                 'role': 'user',
+                'is_banned': False, # ডিফল্ট ভাবে ব্যান ফলস থাকবে
+                'is_active': False, # একাউন্ট ফি না দেওয়া পর্যন্ত ইনঅ্যাক্টিভ
                 'created_at': datetime.datetime.now(),
                 'referral_count': 0,
                 'referred_by': referred_by_uid
             }
-
             user_ref.set(new_user_data)
             is_admin = False
+            
         else:
+            # যদি ইউজার থাকে, তার রোল চেক করা
             is_admin = user_doc.to_dict().get('role') == 'admin'
 
+        # --- [STEP 3] CREATE SESSION ---
         session.permanent = True
         session['user_id'] = uid
         session['email'] = email
         session['is_admin'] = is_admin
         
         return jsonify({"status": "success"})
+
     except Exception as e:
-        print(e)
+        print(f"Login Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 401
 @app.route('/logout')
 def logout():
