@@ -553,8 +553,7 @@ def admin_panel():
                            pending_tasks=pending_tasks, 
                            pending_withdraws=pending_withdraws,
                            activation_requests=activation_requests,
-                           active_tasks=active_tasks,
-                           admin_notices=admin_notices)
+                           active_tasks=active_tasks)
     
 @app.route(f'/{ADMIN_ROUTE}/approve_activation/<req_id>/<user_uid>')
 @admin_required
