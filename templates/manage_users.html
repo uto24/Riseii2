@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-4 mb-20">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">User Manager</h1>
+            <p class="text-gray-500 text-sm">Manage all registered users here.</p>
+        </div>
+        <a href="/{{ admin_route }}" class="bg-gray-800 text-white px-5 py-2 rounded-lg font-bold hover:bg-black transition">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Pagination & Controls -->
+    <div class="flex justify-between items-center mb-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <span class="font-bold text-gray-700">Page {{ page }}</span>
+        
+        <div class="space-x-2">
+            {% if has_prev %}
+            <a href="?page={{ page - 1 }}" class="bg-blue-100 text-blue-800 px-4 py-2 rounded font-bold hover:bg-blue-200 transition">Previous</a>
+            {% endif %}
+            
+            {% if has_next %}
+            <a href="?page={{ page + 1 }}" class="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700 transition">Next</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-100 text-gray-600 uppercase">
+                    <tr>
+                        <th class="p-4">User Details</th>
+                        <th class="p-4">Wallet Info</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for u in users %}
+                    <tr class="hover:bg-gray-50 {{ 'bg-red-50' if u.is_banned else '' }}">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
+                                    {{ u.name[0] if u.name else 'U' }}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-800">{{ u.name }}</p>
+                                    <p class="text-xs text-gray-500">{{ u.email }}</p>
+                                    <p class="text-xs text-gray-400 font-mono">UID: {{ u.id }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <p class="font-bold text-green-600 text-lg">৳{{ u.balance }}</p>
+                            <p class="text-xs text-gray-500">Ref Count: {{ u.referral_count }}</p>
+                        </td>
+                        <td class="p-4">
+                            {% if u.is_banned %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    BANNED
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    ACTIVE
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <!-- Ban/Unban -->
+                                {% if u.is_banned %}
+                                    <a href="/{{ admin_route }}/unban_user/{{ u.id }}" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold transition">Unban</a>
+                                {% else %}
+                                    <a href="/{{ admin_route }}/ban_user/{{ u.id }}" onclick="return confirm('Confirm BAN this user?')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded text-xs font-bold transition">Ban</a>
+                                {% endif %}
+
+                                <!-- Delete -->
+                                <a href="/{{ admin_route }}/delete_user/{{ u.id }}" onclick="return confirm('DANGER: Delete user permanently?')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-bold transition">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="p-8 text-center text-gray-400">No users found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
