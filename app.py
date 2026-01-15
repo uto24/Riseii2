@@ -512,17 +512,6 @@ def admin_panel():
                 user_ref.update({'balance': final_bal})
                 flash("User balance updated.", "success")
         
-        # Publish Notice
-        elif 'publish_notice' in request.form:
-            title = request.form.get('title')
-            message = request.form.get('message')
-            db.collection('notices').add({
-                'title': title,
-                'message': message,
-                'date': datetime.datetime.now()
-            })
-            flash("Notice Published Successfully!", "success")
-
     # --- 2. DATA FETCHING ---
     
     # Pending Tasks
