@@ -220,8 +220,7 @@ def tasks():
     if request.method == 'POST':
         task_id = request.form.get('task_id')
         
-        # 🔒 SECURITY CHECK: Check if already submitted
-        # We use parentheses () for multi-line query to avoid indentation errors
+        # Security: Check duplicate submission
         existing_sub = db.collection('task_submissions').where(
             field_path='uid', op_string='==', value=uid
         ).where(
@@ -241,7 +240,7 @@ def tasks():
             'email': session['email']
         }
         
-        # Image Upload Logic
+        # Image Upload
         if 'image' in request.files and request.files['image'].filename != '':
             img_url = upload_to_imgbb(request.files['image'])
             if not img_url:
@@ -257,38 +256,34 @@ def tasks():
         flash("Task submitted for review!", "success")
         return redirect(url_for('tasks'))
 
-    # --- GET TASKS LIST ---
+    # --- GET TASKS LIST (FILTERED) ---
     
-    # 1. Get all tasks (Using stream without sort to avoid errors if field missing)
+    # ১. সব টাস্ক আনো
     tasks_ref = db.collection('tasks').stream()
     
-    # 2. Get user submissions
+    # ২. ইউজার যা সাবমিট করেছে তা আনো
     user_submissions = db.collection('task_submissions').where(
         field_path='uid', op_string='==', value=uid
     ).stream()
     
-    # List of task IDs user has already done
+    # সাবমিট করা টাস্কের আইডি লিস্ট
     submitted_task_ids = [sub.to_dict().get('task_id') for sub in user_submissions]
     
     tasks_list = []
     for t in tasks_ref:
+        # ৩. ফিল্টার লজিক: যদি টাস্কটি অলরেডি করা থাকে, তবে বাদ দাও (continue)
+        if t.id in submitted_task_ids:
+            continue 
+            
+        # যদি করা না থাকে, তবেই লিস্টে যোগ করো
         task_data = t.to_dict()
         task_data['id'] = t.id
-        
-        # Check if done
-        if t.id in submitted_task_ids:
-            task_data['is_done'] = True
-        else:
-            task_data['is_done'] = False
-            
         tasks_list.append(task_data)
     
-    # Optional: Sort manually by python (safest way)
-    # This sorts new tasks first, handling missing 'created_at' gracefully
+    # Sort manually (New tasks first)
     tasks_list.sort(key=lambda x: str(x.get('created_at', '')), reverse=True)
     
     return render_template('tasks.html', tasks=tasks_list)
-
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
