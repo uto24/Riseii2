@@ -636,43 +636,5 @@ def reject_withdraw(req_id):
 # Required for Vercel
 app = app 
 
-# --- AUTOMATIC CLEANUP FUNCTION (15 Days Old Data) ---
-def cleanup_old_data():
-    try:
-        # ১৫ দিন আগের তারিখ বের করা
-        cutoff_date = datetime.datetime.now() - timedelta(days=15)
-        
-        # ১. পুরনো Task Submissions ডিলিট
-        old_tasks = db.collection('task_submissions').where(
-            field_path='timestamp', op_string='<', value=cutoff_date
-        ).limit(50).stream()
-        
-        for doc in old_tasks:
-            doc.reference.delete()
-
-        # ২. পুরনো Balance History ডিলিট
-        old_history = db.collection('balance_history').where(
-            field_path='timestamp', op_string='<', value=cutoff_date
-        ).limit(50).stream()
-        
-        for doc in old_history:
-            doc.reference.delete()
-
-        # ৩. পুরনো Withdraw Requests (শুধুমাত্র Paid/Rejected) ডিলিট
-        old_withdraws = db.collection('withdraw_requests').where(
-            field_path='timestamp', op_string='<', value=cutoff_date
-        ).limit(50).stream()
-        
-        for doc in old_withdraws:
-            data = doc.to_dict()
-            if data.get('status') in ['paid', 'rejected']:
-                doc.reference.delete()
-                
-        print("Cleanup check done.")
-        
-    except Exception as e:
-        print(f"Cleanup Error: {e}")
-
-
 if __name__ == '__main__':
     app.run(debug=True)
