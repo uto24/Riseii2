@@ -148,11 +148,11 @@ def session_login():
                     referred_by_uid = ref_code
                     
                     # A. নতুন ইউজারকে বোনাস (৫ টাকা)
-                    initial_balance = 5.0 
+                    initial_balance = 10.0 
                     
                     # B. যে রেফার করেছে তাকে বোনাস (৫ টাকা)
                     referrer_data = referrer_doc.to_dict()
-                    new_ref_balance = referrer_data.get('balance', 0) + 5.0
+                    new_ref_balance = referrer_data.get('balance', 0) + 10.0
                     new_ref_count = referrer_data.get('referral_count', 0) + 1
                     
                     referrer_ref.update({
