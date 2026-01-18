@@ -406,55 +406,64 @@ def withdraw():
     user_ref = db.collection('users').document(uid)
     user = user_ref.get().to_dict()
     
-    # --- 1. CONDITION CHECK ---
-    # যদি ব্যালেন্স ২৫০ এর কম হয় অথবা রেফার ৩ এর কম হয়
-    if user.get('balance', 0) < 250 or user.get('referral_count', 0) < 3:
-        flash("উইথড্র করার জন্য ২৫০ টাকা ব্যালেন্স এবং ৩ জন রেফার প্রয়োজন।", "error")
-        return redirect(url_for('dashboard'))
-
-    # --- 2. ACTIVATION CHECK ---
-    # শর্ত পূরণ হয়েছে, কিন্তু একাউন্ট অ্যাক্টিভ না হলে পেমেন্ট পেজ দেখাবে
-    if not user.get('is_active', False): 
-        # is_active ফিল্ড না থাকলে বা False হলে
-        return render_template('activation.html')
-
-    # --- 3. NORMAL WITHDRAW FORM ---
-    # সব শর্ত পূরণ এবং একাউন্ট অ্যাক্টিভ থাকলে উইথড্র করতে পারবে
     if request.method == 'POST':
         try:
             amount = float(request.form.get('amount'))
             method = request.form.get('method')
             number = request.form.get('number')
             
+            # --- 1. MINIMUM & BALANCE CHECK ---
             if amount < 50: 
-                flash("Minimum withdraw is 50 BDT.", "error")
-            elif user['balance'] < amount:
-                flash("Insufficient balance.", "error")
-            else:
-                db.collection('withdraw_requests').add({
-                    'uid': uid,
-                    'email': session['email'],
-                    'amount': amount,
-                    'method': method,
-                    'number': number,
-                    'status': 'pending',
-                    'timestamp': datetime.datetime.now()
-                })
-                user_ref.update({'balance': user['balance'] - amount})
-                
-                db.collection('balance_history').add({
-                    'uid': uid,
-                    'type': 'withdraw_hold',
-                    'amount': -amount,
-                    'timestamp': datetime.datetime.now()
-                })
-                flash("Withdraw request sent.", "success")
+                flash("Minimum withdraw amount is 50 BDT.", "error")
+                return redirect(url_for('withdraw'))
+            
+            if user.get('balance', 0) < amount:
+                flash("Insufficient wallet balance.", "error")
+                return redirect(url_for('withdraw'))
+
+            # --- 2. ELIGIBILITY CHECK (250 TK + 3 REF) ---
+            # উইথড্র বাটনে চাপার পর চেক হবে
+            if user.get('balance', 0) < 250 or user.get('referral_count', 0) < 3:
+                flash(f"Withdraw requires 250 BDT & 3 Referrals. (You have: {user.get('balance')} BDT, {user.get('referral_count')} Ref)", "error")
+                return redirect(url_for('withdraw'))
+
+            # --- 3. ACTIVATION CHECK ---
+            # শর্ত পূরণ হয়েছে, কিন্তু একাউন্ট অ্যাক্টিভ নেই? তাহলে অ্যাক্টিভেশন পেজে পাঠাও
+            if not user.get('is_active', False): 
+                flash("Conditions met! Please activate your account first.", "success")
+                return render_template('activation.html')
+
+            # --- 4. SUCCESS: PROCESS WITHDRAW ---
+            # সব শর্ত ঠিক থাকলে এবং একাউন্ট অ্যাক্টিভ থাকলে
+            db.collection('withdraw_requests').add({
+                'uid': uid,
+                'email': session['email'],
+                'amount': amount,
+                'method': method,
+                'number': number,
+                'status': 'pending',
+                'timestamp': datetime.datetime.now()
+            })
+            
+            # ব্যালেন্স কাটা
+            user_ref.update({'balance': user['balance'] - amount})
+            
+            # হিস্টোরি লগ
+            db.collection('balance_history').add({
+                'uid': uid,
+                'type': 'withdraw_hold',
+                'amount': -amount,
+                'timestamp': datetime.datetime.now()
+            })
+            
+            flash("Withdraw request sent successfully!", "success")
+            return redirect(url_for('withdraw'))
+
         except ValueError:
             flash("Invalid amount entered.", "error")
             
+    # GET Request: সবসময় ফর্ম দেখাবে
     return render_template('withdraw.html', user=user)
-
-
 # --- NEW ROUTE: ACTIVATION SUBMISSION ---
 @app.route('/submit_activation', methods=['POST'])
 @login_required
