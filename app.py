@@ -271,7 +271,7 @@ def dashboard():
 
 
 # --- 1. NEW ROUTE FOR USER MANAGEMENT (Add this block) ---
-@app.route(f'/{ADMIN_ROUTE}/users')
+@app.route(f'/{ADMIN_ROUTE}/info')
 @admin_required
 def manage_users():
     # Pagination Logic
