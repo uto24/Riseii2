@@ -210,6 +210,10 @@ def session_login():
     except Exception as e:
         print(f"Login Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 401
+
+@app.route('/tutorial')
+def tutorial():
+    return render_template('tutorial.html')
 @app.route('/logout')
 def logout():
     session.clear()
