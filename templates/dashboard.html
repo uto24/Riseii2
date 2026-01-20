@@ -1,1 +1,273 @@
+{% extends "base.html" %}
 
+{% block content %}
+<style>
+    /* Custom Modern Styles */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(229, 231, 235, 0.5);
+    }
+    .gradient-text {
+        background: linear-gradient(90deg, #2563eb, #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .ad-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin: 1.5rem 0;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+    .nav-tab-active {
+        color: #2563eb;
+        border-bottom: 3px solid #2563eb;
+    }
+    .action-btn {
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .action-btn:hover {
+        transform: translateY(-3px);
+    }
+</style>
+
+<div class="glass-card p-6 rounded-2xl shadow-sm mb-6 flex flex-col md:flex-row items-center gap-6">
+    <div class="relative">
+        <div class="w-20 h-20 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg transform -rotate-3">
+            {{ user.name[0] if user.name else user.email[0] }}
+        </div>
+        <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></div>
+    </div>
+    
+    <div class="text-center md:text-left flex-1">
+        <div class="flex flex-col md:flex-row items-center gap-2">
+            <h2 class="text-2xl font-extrabold text-gray-800">{{ user.name }}</h2>
+            <span class="bg-blue-50 text-blue-600 text-[10px] px-2 py-0.5 rounded-full border border-blue-100 font-bold uppercase tracking-wider">{{ user.role }}</span>
+        </div>
+        <p class="text-gray-500 text-sm mb-2">{{ user.email }}</p>
+        {% if user.fb_link %}
+        <a href="{{ user.fb_link }}" target="_blank" class="inline-flex items-center text-blue-600 text-xs font-semibold hover:text-blue-800">
+            <i class="fab fa-facebook mr-1"></i> Connected Profile
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="text-center md:text-right bg-gray-50 p-4 rounded-xl border border-gray-100 min-w-[160px]">
+        <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Total Balance</p>
+        <h1 class="text-3xl font-black text-gray-800">৳ {{ user.balance }}</h1>
+    </div>
+</div>
+
+<div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl mb-6 flex gap-4 items-start shadow-sm">
+    <div class="text-amber-500 mt-1">
+        <i class="fas fa-bolt-lightning text-xl"></i>
+    </div>
+    <div class="text-sm">
+        <strong class="text-amber-900 block mb-1">Important System Notice</strong>
+        <p class="text-amber-800 leading-relaxed">
+            একজন ব্যক্তির একাধিক একাউন্ট থাকলে তার সকল অ্যাকাউন্ট ব্যান হয়ে যাবে! ভুয়া রেফার নিষিদ্ধ! প্রতি রেফারে <b>১০ টাকা</b>। ২৫ জন রেফার করলে <b>৫০০ টাকা</b> বোনাস!
+        </p>
+    </div>
+</div>
+<!-- How to Work Button -->
+<div class="mb-6">
+    <a href="/tutorial" class="block w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-4 rounded-xl shadow-md flex items-center justify-between hover:opacity-90 transition">
+        <div class="flex items-center gap-3">
+            <div class="bg-white/20 p-2 rounded-full">
+                <i class="fas fa-play text-white"></i>
+            </div>
+            <div>
+                <h3 class="font-bold">কিভাবে কাজ করবেন?</h3>
+                <p class="text-xs text-indigo-100">ভিডিও টিউটোরিয়াল দেখুন</p>
+            </div>
+        </div>
+        <i class="fas fa-chevron-right"></i>
+    </a>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+    <a href="/tasks" class="action-btn flex flex-col items-center justify-center p-4 bg-blue-600 text-white rounded-2xl shadow-blue-200 shadow-lg">
+        <i class="fas fa-briefcase text-xl mb-2"></i>
+        <span class="font-bold text-sm">Start Work</span>
+    </a>
+    <a href="/withdraw" class="action-btn flex flex-col items-center justify-center p-4 bg-emerald-600 text-white rounded-2xl shadow-emerald-200 shadow-lg">
+        <i class="fas fa-money-bill-transfer text-xl mb-2"></i>
+        <span class="font-bold text-sm">Withdraw</span>
+    </a>
+    <a href="/notice" class="action-btn flex flex-col items-center justify-center p-4 bg-white text-gray-700 rounded-2xl border border-gray-200 shadow-sm">
+        <i class="fas fa-bullhorn text-xl mb-2 text-orange-500"></i>
+        <span class="font-bold text-sm">Notices</span>
+    </a>
+    <a href="https://t.me/securehx" class="action-btn flex flex-col items-center justify-center p-4 bg-[#0088cc] text-white rounded-2xl shadow-blue-100 shadow-lg">
+        <i class="fab fa-telegram-plane text-xl mb-2"></i>
+        <span class="font-bold text-sm">Support</span>
+    </a>
+</div>
+
+<div class="ad-container">
+    <script> atOptions = { 'key' : '4bbf33f7474813a836b5f0f70829032c', 'format' : 'iframe', 'height' : 60, 'width' : 468, 'params' : {} }; </script>
+    <script src="https://www.highperformanceformat.com/4bbf33f7474813a836b5f0f70829032c/invoke.js"></script>
+</div>
+
+<div class="mb-8">
+    <h3 class="text-gray-800 font-black text-lg mb-4 flex items-center">
+        <span class="w-2 h-6 bg-blue-600 rounded-full mr-2"></span> Work Overview
+    </h3>
+    <div class="grid grid-cols-3 gap-3">
+        <div class="bg-white p-4 rounded-2xl border-b-4 border-green-500 shadow-sm">
+            <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Approved</p>
+            <p class="text-2xl font-black text-gray-800">{{ stats.approved }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border-b-4 border-yellow-400 shadow-sm">
+            <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Pending</p>
+            <p class="text-2xl font-black text-gray-800">{{ stats.pending }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border-b-4 border-red-400 shadow-sm">
+            <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Rejected</p>
+            <p class="text-2xl font-black text-gray-800">{{ stats.rejected }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="bg-gradient-to-br from-gray-900 to-blue-900 rounded-3xl p-6 text-white shadow-xl mb-8 relative overflow-hidden">
+    <div class="absolute top-0 right-0 p-4 opacity-10">
+        <i class="fas fa-users text-9xl"></i>
+    </div>
+    <div class="relative z-10">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h3 class="font-black text-xl">Refer & Earn Bonus</h3>
+                <p class="text-blue-200 text-xs">Your unique invite link</p>
+            </div>
+            <div class="bg-blue-500/30 backdrop-blur-md px-3 py-1 rounded-lg border border-white/20 text-xs font-bold">
+                ৳ 10 / User
+            </div>
+        </div>
+        
+        <div class="flex gap-2 bg-black/20 p-2 rounded-xl border border-white/10 mb-4">
+            <input type="text" value="{{ request.url_root }}auth?ref={{ session.user_id }}" id="refLink" readonly 
+                   class="w-full bg-transparent border-none text-blue-100 text-xs px-2 focus:ring-0 overflow-ellipsis">
+            <button onclick="copyRef()" class="bg-white text-blue-900 px-4 py-2 rounded-lg text-xs font-black uppercase hover:bg-blue-50 transition">
+                Copy
+            </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+            <div>
+                <p class="text-[10px] text-blue-300 uppercase font-bold">Total Team</p>
+                <p class="text-lg font-bold">{{ user.referral_count }} Members</p>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] text-blue-300 uppercase font-bold">Earnings</p>
+                <p class="text-lg font-bold">৳ {{ user.referral_count * 10 }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+    <div class="flex border-b">
+        <button onclick="showTab('history')" id="btn-history" class="flex-1 py-4 text-xs font-black uppercase tracking-widest nav-tab-active">
+            History
+        </button>
+        <button onclick="showTab('referrals')" id="btn-referrals" class="flex-1 py-4 text-xs font-black uppercase tracking-widest text-gray-400">
+            My Team ({{ referrals|length }})
+        </button>
+    </div>
+
+    <div id="tab-history" class="divide-y divide-gray-50">
+        {% for h in history %}
+        <div class="p-4 flex justify-between items-center hover:bg-gray-50 transition">
+            <div>
+                {% if h.type == 'withdraw_hold' %}
+                    <p class="font-bold text-sm text-yellow-600">Pending Review</p>
+                {% elif h.type == 'withdraw_paid' %}
+                    <p class="font-bold text-sm text-emerald-600">Withdraw Successful</p>
+                {% else %}
+                    <p class="font-bold text-sm text-gray-800 capitalize">{{ h.type.replace('_', ' ') }}</p>
+                {% endif %}
+                <p class="text-[10px] text-gray-400 mt-1 font-medium">{{ h.timestamp.strftime('%d %b, %I:%M %p') }}</p>
+            </div>
+            <div class="text-right">
+                <p class="font-black text-sm {{ 'text-red-500' if h.amount < 0 else 'text-emerald-600' }}">
+                    {{ '+' if h.amount > 0 else '' }}{{ h.amount }}
+                </p>
+            </div>
+        </div>
+        {% else %}
+        <div class="p-10 text-center">
+            <i class="fas fa-folder-open text-3xl text-gray-200 mb-2"></i>
+            <p class="text-gray-400 text-sm">No transactions yet</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="tab-referrals" class="hidden divide-y divide-gray-50">
+        {% for ref in referrals %}
+        <div class="p-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500">
+                    {{ ref.name[0] }}
+                </div>
+                <div>
+                    <p class="font-bold text-sm text-gray-800">{{ ref.name }}</p>
+                    <p class="text-[10px] text-gray-400">{{ ref.joined.strftime('%d %b %Y') }}</p>
+                </div>
+            </div>
+            <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded">Active</span>
+        </div>
+        {% else %}
+        <div class="p-10 text-center">
+            <p class="text-gray-400 text-sm">Your team is empty. Start inviting!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="ad-container">
+    <script> atOptions = { 'key' : '4bbf33f7474813a836b5f0f70829032c', 'format' : 'iframe', 'height' : 60, 'width' : 468, 'params' : {} }; </script>
+    <script src="https://www.highperformanceformat.com/4bbf33f7474813a836b5f0f70829032c/invoke.js"></script>
+</div>
+
+<script>
+    function copyRef() {
+        var copyText = document.getElementById("refLink");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+        
+        // Modern Alert
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = "COPIED!";
+        btn.classList.replace('bg-white', 'bg-emerald-500');
+        btn.classList.replace('text-blue-900', 'text-white');
+        
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.classList.replace('bg-emerald-500', 'bg-white');
+            btn.classList.replace('text-white', 'text-blue-900');
+        }, 2000);
+    }
+
+    function showTab(tabName) {
+        const histTab = document.getElementById('tab-history');
+        const refTab = document.getElementById('tab-referrals');
+        const histBtn = document.getElementById('btn-history');
+        const refBtn = document.getElementById('btn-referrals');
+
+        if(tabName === 'history') {
+            histTab.classList.remove('hidden');
+            refTab.classList.add('hidden');
+            histBtn.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest nav-tab-active";
+            refBtn.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest text-gray-400";
+        } else {
+            refTab.classList.remove('hidden');
+            histTab.classList.add('hidden');
+            refBtn.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest nav-tab-active";
+            histBtn.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest text-gray-400";
+        }
+    }
+</script>
+{% endblock %}
