@@ -49,13 +49,13 @@
         <p class="text-gray-500 text-sm mb-2">{{ user.email }}</p>
         {% if user.fb_link %}
         <a href="{{ user.fb_link }}" target="_blank" class="inline-flex items-center text-blue-600 text-xs font-semibold hover:text-blue-800">
-            <i class="fab fa-facebook mr-1"></i> Connected Profile
+            <i class="fab fa-facebook mr-1"></i> ফেসবুক আইডি
         </a>
         {% endif %}
     </div>
 
     <div class="text-center md:text-right bg-gray-50 p-4 rounded-xl border border-gray-100 min-w-[160px]">
-        <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Total Balance</p>
+        <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">সর্বোমোট টাকা</p>
         <h1 class="text-3xl font-black text-gray-800">৳ {{ user.balance }}</h1>
     </div>
 </div>
@@ -94,7 +94,7 @@
     </a>
     <a href="/withdraw" class="action-btn flex flex-col items-center justify-center p-4 bg-emerald-600 text-white rounded-2xl shadow-emerald-200 shadow-lg">
         <i class="fas fa-money-bill-transfer text-xl mb-2"></i>
-        <span class="font-bold text-sm">Withdraw</span>
+        <span class="font-bold text-sm">টাকা তুলুন</span>
     </a>
     <a href="/notice" class="action-btn flex flex-col items-center justify-center p-4 bg-white text-gray-700 rounded-2xl border border-gray-200 shadow-sm">
         <i class="fas fa-bullhorn text-xl mb-2 text-orange-500"></i>
@@ -102,7 +102,7 @@
     </a>
     <a href="https://t.me/securehx" class="action-btn flex flex-col items-center justify-center p-4 bg-[#0088cc] text-white rounded-2xl shadow-blue-100 shadow-lg">
         <i class="fab fa-telegram-plane text-xl mb-2"></i>
-        <span class="font-bold text-sm">Support</span>
+        <span class="font-bold text-sm">যোগাযোগ করুন</span>
     </a>
 </div>
 
@@ -173,7 +173,7 @@
             History
         </button>
         <button onclick="showTab('referrals')" id="btn-referrals" class="flex-1 py-4 text-xs font-black uppercase tracking-widest text-gray-400">
-            My Team ({{ referrals|length }})
+            আমার টিম ({{ referrals|length }})
         </button>
     </div>
 
