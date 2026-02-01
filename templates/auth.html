@@ -1,78 +1,80 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="min-h-screen flex flex-col justify-center items-center -mt-10">
+<div class="min-h-screen flex items-center justify-center -mt-16 px-4">
     
-    <!-- Auth Card -->
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-        <h2 id="form-title" class="text-2xl font-bold text-center text-gray-800 mb-6">একাউন্ট খুলুন</h2>
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         
-        <!-- Google Login Button -->
-        <button onclick="handleGoogleAuth()" class="w-full border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium py-2.5 rounded flex items-center justify-center gap-2 mb-4 transition">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="google">
-            Google দিয়ে চালিয়ে যান
-        </button>
-
-        <div class="flex items-center gap-2 mb-4">
-            <div class="h-px w-full bg-gray-200"></div>
-            <span class="text-gray-400 text-sm">অথবা</span>
-            <div class="h-px w-full bg-gray-200"></div>
+        <!-- Header Section -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-center text-white">
+            <h2 id="form-title" class="text-3xl font-bold mb-2">Welcome Back</h2>
+            <p class="text-blue-100 text-sm">Please login to your account</p>
         </div>
 
-        <div id="auth-form" class="space-y-4">
-            <!-- Name Field (Only for Signup) -->
-            <div id="name-field">
-                <label class="block text-sm font-medium text-gray-700 mb-1">আপনার নাম</label>
-                <input type="text" id="name" placeholder="আপনার পুরো নাম" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+        <div class="p-8">
+            <!-- Google Button -->
+            <button onclick="handleGoogleAuth()" type="button" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 px-4 rounded-xl transition duration-300 shadow-sm group">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6 group-hover:scale-110 transition" alt="Google">
+                <span>Continue with Google</span>
+            </button>
+
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white text-gray-500">Or continue with email</span>
+                </div>
             </div>
 
-            <!-- Email -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ইমেইল</label>
-                <input type="email" id="email" placeholder="example@mail.com" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+            <!-- Form -->
+            <div id="auth-form" class="space-y-4">
+                
+                <!-- Signup Fields (Hidden by Default) -->
+                <div id="signup-fields" class="hidden space-y-4">
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-3 top-3.5 text-gray-400"></i>
+                        <input type="text" id="name" placeholder="Full Name" class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                    </div>
+                    
+                    <div class="relative">
+                        <i class="fab fa-facebook absolute left-3 top-3.5 text-gray-400"></i>
+                        <input type="url" id="fb_link" placeholder="Facebook Profile Link (Optional)" class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                    </div>
+
+                    <div class="relative">
+                        <i class="fas fa-gift absolute left-3 top-3.5 text-gray-400"></i>
+                        <input type="text" id="ref_code_input" placeholder="Referral Code (Optional)" class="w-full pl-10 pr-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                </div>
+
+                <!-- Common Fields -->
+                <div class="relative">
+                    <i class="fas fa-envelope absolute left-3 top-3.5 text-gray-400"></i>
+                    <input type="email" id="email" placeholder="Email Address" class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                </div>
+
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-3 top-3.5 text-gray-400"></i>
+                    <input type="password" id="password" placeholder="Password" class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                </div>
+
+                <!-- Submit Button -->
+                <button id="submit-btn" onclick="handleAuth()" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition transform active:scale-95 shadow-lg">
+                    Login Now
+                </button>
             </div>
 
-            <!-- Password -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">পাসওয়ার্ড (কমপক্ষে ৬ অক্ষরের)</label>
-                <input type="password" id="password" placeholder="******" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
+            <!-- Error Message -->
+            <p id="status" class="text-center text-red-500 mt-4 text-sm font-medium animate-pulse"></p>
 
-            <!-- FB Link (Only for Signup) -->
-            <div id="fb-field">
-                <label class="block text-sm font-medium text-gray-700 mb-1">ফেসবুক প্রোফাইল লিঙ্ক (ঐচ্ছিক)</label>
-                <input type="url" id="fb_link" placeholder="https://facebook.com/your.profile" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-
-            <!-- Referral Code -->
-            <div id="ref-field">
-                <label class="block text-sm font-medium text-gray-700 mb-1">রেফার কোড (যদি থাকে)</label>
-                <input type="text" id="ref_code_input" placeholder="রেফার কোড" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
-            </div>
-
-            <!-- Action Button -->
-            <button id="submit-btn" onclick="handleAuth()" class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition">একাউন্ট খুলুন</button>
+            <!-- Toggle Link -->
+            <p class="text-center text-sm text-gray-500 mt-6">
+                <span id="toggle-text">Don't have an account?</span> 
+                <button onclick="toggleMode()" class="text-blue-600 font-bold hover:underline ml-1">Sign Up</button>
+            </p>
         </div>
-
-        <p id="status" class="text-center text-red-500 mt-4 text-sm font-medium"></p>
-
-        <!-- Toggle Login/Signup -->
-        <p class="text-center text-sm text-gray-600 mt-6">
-            <span id="toggle-text">আপনার একাউন্ট আছে?</span> 
-            <button onclick="toggleMode()" class="text-blue-600 font-bold hover:underline">এখানে লগইন করুন</button>
-        </p>
     </div>
-
-    <!-- Footer -->
-    <footer class="mt-10 text-center text-gray-500 text-xs space-y-2">
-        <div class="flex justify-center space-x-4">
-            <a href="#" class="hover:text-gray-800">আমাদের সম্পর্কে</a>
-            <a href="#" class="hover:text-gray-800">শর্তাবলী</a>
-            <a href="#" class="hover:text-gray-800">গোপনীয়তা নীতি</a>
-            <a href="#" class="hover:text-gray-800">যোগাযোগ</a>
-        </div>
-        <p>&copy; 2025 Riseii. সর্বস্বত্ব সংরক্ষিত।</p>
-    </footer>
 </div>
 
 <!-- Firebase SDK -->
@@ -85,7 +87,7 @@
     const auth = firebase.auth();
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-    let isSignup = true;
+    let isSignup = false; // Default Login Mode
 
     // Check URL for Referral Code
     const urlParams = new URLSearchParams(window.location.search);
@@ -93,34 +95,33 @@
     if (refParam) {
         document.getElementById('ref_code_input').value = refParam;
         localStorage.setItem('referral_code', refParam);
+        // If ref link used, auto switch to signup
+        toggleMode(); 
     }
 
     function toggleMode() {
         isSignup = !isSignup;
-        const nameField = document.getElementById('name-field');
-        const fbField = document.getElementById('fb-field');
-        const refField = document.getElementById('ref-field');
+        const signupFields = document.getElementById('signup-fields');
         const title = document.getElementById('form-title');
         const btn = document.getElementById('submit-btn');
         const toggleText = document.getElementById('toggle-text');
         const toggleBtn = toggleText.nextElementSibling;
+        const subTitle = title.nextElementSibling;
 
         if (isSignup) {
-            nameField.style.display = 'block';
-            fbField.style.display = 'block';
-            refField.style.display = 'block';
-            title.innerText = "একাউন্ট খুলুন";
-            btn.innerText = "একাউন্ট খুলুন";
-            toggleText.innerText = "আপনার একাউন্ট আছে?";
-            toggleBtn.innerText = "এখানে লগইন করুন";
+            signupFields.classList.remove('hidden');
+            title.innerText = "Create Account";
+            subTitle.innerText = "Join us and start earning";
+            btn.innerText = "Sign Up";
+            toggleText.innerText = "Already have an account?";
+            toggleBtn.innerText = "Login";
         } else {
-            nameField.style.display = 'none';
-            fbField.style.display = 'none';
-            refField.style.display = 'none';
-            title.innerText = "লগইন করুন";
-            btn.innerText = "লগইন করুন";
-            toggleText.innerText = "একাউন্ট নেই?";
-            toggleBtn.innerText = "নতুন একাউন্ট খুলুন";
+            signupFields.classList.add('hidden');
+            title.innerText = "Welcome Back";
+            subTitle.innerText = "Please login to your account";
+            btn.innerText = "Login Now";
+            toggleText.innerText = "Don't have an account?";
+            toggleBtn.innerText = "Sign Up";
         }
     }
 
@@ -140,7 +141,10 @@
         });
         
         const data = await res.json();
-        if(data.status === 'success') {
+        
+        if(res.status === 403) {
+            document.getElementById('status').innerText = data.message; // Show Ban Message
+        } else if(data.status === 'success') {
             window.location.href = '/dashboard';
         } else {
             document.getElementById('status').innerText = "Server Error: " + data.message;
@@ -154,16 +158,17 @@
         const fbLink = document.getElementById('fb_link').value;
         const status = document.getElementById('status');
 
-        if(!email || !pass) { status.innerText = "ইমেইল এবং পাসওয়ার্ড দিন"; return; }
-        if(isSignup && !name) { status.innerText = "আপনার নাম লিখুন"; return; }
+        if(!email || !pass) { status.innerText = "Please fill in all fields"; return; }
+        if(isSignup && !name) { status.innerText = "Please enter your name"; return; }
 
         status.innerText = "Processing...";
+        status.classList.remove('text-red-500');
+        status.classList.add('text-blue-500');
 
         try {
             let userCred;
             if(isSignup) {
                 userCred = await auth.createUserWithEmailAndPassword(email, pass);
-                // Send extra data (Name, FB Link)
                 await sendToServer(await userCred.user.getIdToken(), {
                     name: name,
                     fb_link: fbLink
@@ -173,11 +178,22 @@
                 await sendToServer(await userCred.user.getIdToken());
             }
         } catch(error) {
-            status.innerText = error.message;
+            status.classList.remove('text-blue-500');
+            status.classList.add('text-red-500');
+            if (error.code === 'auth/email-already-in-use') {
+                status.innerText = "Email already registered. Please Login.";
+            } else if (error.code === 'auth/wrong-password') {
+                status.innerText = "Incorrect Password.";
+            } else {
+                status.innerText = error.message;
+            }
         }
     }
 
     async function handleGoogleAuth() {
+        const status = document.getElementById('status');
+        status.innerText = "Connecting to Google...";
+        
         try {
             const result = await auth.signInWithPopup(googleProvider);
             // For Google, name comes from profile
@@ -186,7 +202,15 @@
                 fb_link: "" 
             });
         } catch (error) {
-            document.getElementById('status').innerText = error.message;
+            status.classList.add('text-red-500');
+            console.error("Google Auth Error:", error);
+            if (error.code === 'auth/unauthorized-domain') {
+                status.innerText = "Error: Domain not authorized in Firebase Console.";
+            } else if (error.code === 'auth/popup-closed-by-user') {
+                status.innerText = "Login cancelled by user.";
+            } else {
+                status.innerText = error.message;
+            }
         }
     }
 </script>
