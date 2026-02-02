@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-4 mb-24 px-4">
+    
+    <!-- Header -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-xl animate-pulse">
+                <i class="fas fa-bullhorn"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">নোটিশ বোর্ড</h1>
+                <p class="text-xs text-gray-500">অফিসিয়াল আপডেট এবং ঘোষণা</p>
+            </div>
+        </div>
+        <a href="/dashboard" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-200 transition">
+            <i class="fas fa-arrow-left mr-1"></i> ব্যাক
+        </a>
+    </div>
+
+    <!-- Notices List -->
+    <div class="space-y-4">
+        {% for notice in notices %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <!-- Title Bar -->
+            <div class="bg-gray-50 px-5 py-3 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800 text-sm md:text-base">{{ notice.title }}</h3>
+                <span class="text-[10px] font-bold text-gray-400 bg-white border border-gray-200 px-2 py-1 rounded-full">
+                    <i class="far fa-clock mr-1"></i> {{ notice.date.strftime('%d %b, %Y') }}
+                </span>
+            </div>
+            
+            <!-- Message Body -->
+            <div class="p-5">
+                <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line text-justify">
+                    {{ notice.message }}
+                </p>
+            </div>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div class="bg-gray-50 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4">
+                <i class="far fa-bell-slash text-gray-300 text-3xl"></i>
+            </div>
+            <h3 class="text-gray-500 font-bold">কোনো নোটিশ নেই</h3>
+            <p class="text-xs text-gray-400 mt-1">বর্তমানে কোনো নতুন ঘোষণা নেই।</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
