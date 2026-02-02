@@ -1,51 +1,70 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto mt-4 mb-24 px-4">
+<div class="max-w-4xl mx-auto mt-8 mb-24 px-4 sm:px-6">
     
-    <!-- Header -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between mb-6">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-xl animate-pulse">
-                <i class="fas fa-bullhorn"></i>
+    <div class="relative overflow-hidden bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between mb-8">
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-red-50 rounded-full blur-3xl opacity-50"></div>
+        
+        <div class="flex items-center gap-4 relative z-10">
+            <div class="w-12 h-12 bg-gradient-to-tr from-red-500 to-rose-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-200">
+                <i class="fas fa-bullhorn text-xl"></i>
             </div>
             <div>
-                <h1 class="text-xl font-bold text-gray-800">নোটিশ বোর্ড</h1>
-                <p class="text-xs text-gray-500">অফিসিয়াল আপডেট এবং ঘোষণা</p>
+                <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">নোটিশ বোর্ড</h1>
+                <p class="text-sm text-gray-500 font-medium">প্রতিদিনের অফিসিয়াল আপডেট ও তথ্য</p>
             </div>
         </div>
-        <a href="/dashboard" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-200 transition">
-            <i class="fas fa-arrow-left mr-1"></i> ব্যাক
+        
+        <a href="/dashboard" class="relative z-10 flex items-center gap-2 bg-gray-50 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-red-600 transition-all duration-300 border border-gray-200">
+            <i class="fas fa-chevron-left text-xs"></i> ফিরে যান
         </a>
     </div>
 
-    <!-- Notices List -->
-    <div class="space-y-4">
+    <div class="grid gap-6">
         {% for notice in notices %}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <!-- Title Bar -->
-            <div class="bg-gray-50 px-5 py-3 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-bold text-gray-800 text-sm md:text-base">{{ notice.title }}</h3>
-                <span class="text-[10px] font-bold text-gray-400 bg-white border border-gray-200 px-2 py-1 rounded-full">
-                    <i class="far fa-clock mr-1"></i> {{ notice.date.strftime('%d %b, %Y') }}
-                </span>
+        <article class="group bg-white rounded-2xl shadow-sm border border-gray-100 hover:border-red-200 hover:shadow-md transition-all duration-300 overflow-hidden">
+            <div class="flex flex-col md:flex-row">
+                
+                <div class="md:w-32 bg-gray-50/50 border-b md:border-b-0 md:border-r border-gray-100 p-4 flex md:flex-col items-center justify-center text-center">
+                    <span class="text-2xl font-black text-gray-800">{{ notice.date.strftime('%d') }}</span>
+                    <span class="text-[10px] uppercase tracking-widest font-bold text-red-500 md:mt-1">{{ notice.date.strftime('%b, %Y') }}</span>
+                </div>
+
+                <div class="flex-1 p-6">
+                    <div class="flex items-start justify-between mb-3">
+                        <h3 class="text-lg font-bold text-gray-800 group-hover:text-red-600 transition-colors">
+                            {{ notice.title }}
+                        </h3>
+                        {% if loop.first %}
+                        <span class="flex items-center gap-1 bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-tighter animate-pulse">
+                            <i class="fas fa-thumbtack"></i> নিউ
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
+                        {{ notice.message }}
+                    </p>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-50 flex justify-end">
+                        <button class="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1">
+                            <i class="far fa-share-square"></i> শেয়ার করুন
+                        </button>
+                    </div>
+                </div>
             </div>
-            
-            <!-- Message Body -->
-            <div class="p-5">
-                <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line text-justify">
-                    {{ notice.message }}
-                </p>
-            </div>
-        </div>
+        </article>
         {% else %}
-        <!-- Empty State -->
-        <div class="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
-            <div class="bg-gray-50 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4">
-                <i class="far fa-bell-slash text-gray-300 text-3xl"></i>
+        <div class="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-100">
+            <div class="relative w-24 h-24 mx-auto mb-6">
+                <div class="absolute inset-0 bg-gray-50 rounded-full animate-ping opacity-20"></div>
+                <div class="relative bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center">
+                    <i class="fas fa-envelope-open text-gray-300 text-4xl"></i>
+                </div>
             </div>
-            <h3 class="text-gray-500 font-bold">কোনো নোটিশ নেই</h3>
-            <p class="text-xs text-gray-400 mt-1">বর্তমানে কোনো নতুন ঘোষণা নেই।</p>
+            <h3 class="text-xl font-bold text-gray-800">কোনো নোটিশ পাওয়া যায়নি</h3>
+            <p class="text-gray-500 mt-2 max-w-xs mx-auto text-sm">নতুন কোনো ঘোষণা আসলে আপনাকে এখানে জানিয়ে দেওয়া হবে।</p>
         </div>
         {% endfor %}
     </div>
