@@ -524,7 +524,17 @@ def admin_panel():
                 'updated_at': datetime.datetime.now()
             })
             flash("System Notice Updated on Dashboard!", "success")
-
+# [NEW] Publish Global Notice
+        elif 'publish_notice' in request.form:
+            try:
+                db.collection('notices').add({
+                    'title': request.form.get('title'),
+                    'message': request.form.get('message'),
+                    'date': datetime.datetime.now()
+                })
+                flash("Notice Published Successfully!", "success")
+            except Exception as e:
+                flash(f"Error: {e}", "error")
     # --- 2tt. DATA FETCHING ---
     
     # Pending Tasks
@@ -548,6 +558,21 @@ def admin_panel():
                            pending_withdraws=pending_withdraws,
                            activation_requests=activation_requests,
                            active_tasks=active_tasks)
+
+@app.route(f'/{ADMIN_ROUTE}/delete_notice/<notice_id>')
+@admin_required
+def delete_notice(notice_id):
+    db.collection('notices').document(notice_id).delete()
+    flash("Notice Deleted.", "success")
+    return redirect(f'/{ADMIN_ROUTE}')
+
+@app.route('/notice')
+@login_required
+def notice():
+    # সব নোটিশ আনা (নতুন গুলো আগে)
+    notices_ref = db.collection('notices').order_by('date', direction=Query.DESCENDING).stream()
+    notices = [{'id': n.id, **n.to_dict()} for n in notices_ref]
+    return render_template('notice.html', notices=notices)
     
 @app.route(f'/{ADMIN_ROUTE}/approve_activation/<req_id>/<user_uid>')
 @admin_required
