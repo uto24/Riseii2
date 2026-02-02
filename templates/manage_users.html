@@ -1,131 +1,161 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-7xl mx-auto mt-6 mb-24 px-4">
     
-    <div class="md:flex md:items-center md:justify-between mb-8">
-        <div class="flex-1 min-w-0">
-            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">User Directory</h2>
-            <p class="mt-1 text-sm text-gray-500">A comprehensive list of all registered members and their financial status.</p>
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">User Database</h1>
+            <p class="text-gray-500 text-sm">Total Users Loaded: <span class="font-bold text-blue-600">{{ users|length }}</span> (On this page)</p>
         </div>
-        <div class="mt-4 flex md:mt-0 md:ml-4">
-            <a href="/{{ admin_route }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition">
-                <i class="fas fa-chevron-left mr-2"></i> Dashboard
+        <div class="flex gap-3">
+            <a href="/{{ admin_route }}" class="bg-gray-800 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-black transition shadow-lg flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Dashboard
             </a>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
-        <div class="bg-white overflow-hidden shadow rounded-lg border border-gray-100">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
-                        <i class="fas fa-users text-white"></i>
-                    </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
-                            <dd class="text-lg font-bold text-gray-900">{{ users|length }}</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white p-4 rounded-t-xl border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="relative w-full md:w-96">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                <i class="fas fa-search"></i>
-            </span>
-            <input type="text" placeholder="Search by name or email..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-        </div>
+    <!-- Search & Pagination Bar -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
         
-        <div class="flex items-center gap-2">
-            <span class="text-sm text-gray-500 mr-2">Page {{ page }}</span>
-            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                {% if has_prev %}
-                <a href="?page={{ page - 1 }}" class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <i class="fas fa-chevron-left"></i>
-                </a>
-                {% endif %}
-                
-                {% if has_next %}
-                <a href="?page={{ page + 1 }}" class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-                {% endif %}
-            </nav>
+        <!-- Search Input -->
+        <div class="relative w-full md:w-1/3">
+            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search by Name, Email or UID..." 
+                   class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm transition bg-gray-50 focus:bg-white">
+        </div>
+
+        <!-- Pagination Buttons -->
+        <div class="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
+            {% if has_prev %}
+            <a href="?page={{ page - 1 }}" class="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-white hover:shadow rounded-md transition">Previous</a>
+            {% else %}
+            <span class="px-4 py-2 text-sm text-gray-300 cursor-not-allowed">Previous</span>
+            {% endif %}
+            
+            <span class="px-4 py-2 text-sm font-bold bg-white shadow rounded-md text-blue-600">Page {{ page }}</span>
+            
+            {% if has_next %}
+            <a href="?page={{ page + 1 }}" class="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-white hover:shadow rounded-md transition">Next</a>
+            {% else %}
+            <span class="px-4 py-2 text-sm text-gray-300 cursor-not-allowed">Next</span>
+            {% endif %}
         </div>
     </div>
 
-    <div class="bg-white shadow-xl rounded-b-xl overflow-hidden border-x border-b border-gray-200">
+    <!-- Users Table -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+            <table class="w-full text-left border-collapse" id="userTable">
+                <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-bold tracking-wider border-b border-gray-200">
                     <tr>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User Profile</th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Financials</th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                        <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Management</th>
+                        <th class="p-5">User Profile</th>
+                        <th class="p-5">Financials</th>
+                        <th class="p-5">Account Info</th>
+                        <th class="p-5 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
+                <tbody class="divide-y divide-gray-100">
                     {% for u in users %}
-                    <tr class="hover:bg-gray-50 transition-colors {{ 'bg-red-50/30' if u.is_banned else '' }}">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="h-10 w-10 flex-shrink-0">
-                                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-inner">
-                                        {{ u.name[0] if u.name else 'U' }}
-                                    </div>
+                    <tr class="hover:bg-blue-50/50 transition duration-150 group {{ 'bg-red-50' if u.is_banned else '' }}">
+                        
+                        <!-- Column 1: Profile -->
+                        <td class="p-5">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md shrink-0">
+                                    {{ u.name[0] | upper if u.name else 'U' }}
                                 </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-bold text-gray-900">{{ u.name }}</div>
-                                    <div class="text-sm text-gray-500">{{ u.email }}</div>
-                                    <div class="text-[10px] font-mono text-gray-400 mt-1 uppercase">ID: {{ u.id }}</div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800 text-base">{{ u.name }}</h4>
+                                    <p class="text-xs text-gray-500 mb-2">{{ u.email }}</p>
+                                    
+                                    <!-- Facebook Link -->
+                                    {% if u.fb_link %}
+                                        <a href="{{ u.fb_link }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-100 text-blue-700 text-xs font-bold hover:bg-blue-200 transition">
+                                            <i class="fab fa-facebook"></i> Facebook
+                                        </a>
+                                    {% else %}
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-400 text-xs font-bold cursor-not-allowed">
+                                            <i class="fas fa-unlink"></i> No FB
+                                        </span>
+                                    {% endif %}
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-bold text-gray-900">৳{{ "{:,.2f}".format(u.balance|float) }}</div>
-                            <div class="text-xs text-gray-500 flex items-center gap-1">
-                                <i class="fas fa-user-friends text-gray-300"></i> {{ u.referral_count }} referrals
+
+                        <!-- Column 2: Financials -->
+                        <td class="p-5">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-gray-400 w-16 uppercase font-bold">Balance:</span>
+                                    <span class="text-lg font-bold text-green-600">৳{{ u.balance }}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-gray-400 w-16 uppercase font-bold">Referrals:</span>
+                                    <span class="text-sm font-bold text-blue-600 bg-blue-50 px-2 rounded">{{ u.referral_count }}</span>
+                                </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            {% if u.is_banned %}
-                                <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 border border-red-200">
-                                    <span class="mr-1.5 flex h-2 w-2 rounded-full bg-red-500"></span> Restricted
-                                </span>
-                            {% else %}
-                                <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 border border-green-200">
-                                    <span class="mr-1.5 flex h-2 w-2 rounded-full bg-green-500"></span> Active
-                                </span>
-                            {% endif %}
+
+                        <!-- Column 3: Info & Status -->
+                        <td class="p-5">
+                            <div class="space-y-2">
+                                <!-- UID Copy -->
+                                <div class="flex items-center gap-2 group/uid cursor-pointer" onclick="copyToClipboard('{{ u.id }}')">
+                                    <span class="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600 border border-gray-200 truncate max-w-[100px]" title="{{ u.id }}">
+                                        {{ u.id[:8] }}...
+                                    </span>
+                                    <i class="fas fa-copy text-gray-300 group-hover/uid:text-blue-500 text-xs transition"></i>
+                                </div>
+
+                                <!-- Joined Date -->
+                                <p class="text-xs text-gray-400">
+                                    <i class="far fa-calendar-alt mr-1"></i> 
+                                    {{ u.created_at.strftime('%d %b, %Y') if u.created_at else 'N/A' }}
+                                </p>
+
+                                <!-- Status Badge -->
+                                <div>
+                                    {% if u.is_banned %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                                            <i class="fas fa-ban mr-1.5"></i> BANNED
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                            <i class="fas fa-check-circle mr-1.5"></i> ACTIVE
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div class="inline-flex shadow-sm rounded-md" role="group">
+
+                        <!-- Column 4: Actions -->
+                        <td class="p-5 text-right">
+                            <div class="flex flex-col gap-2 items-end">
                                 {% if u.is_banned %}
-                                    <a href="/{{ admin_route }}/unban_user/{{ u.id }}" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-l-md text-xs font-semibold text-green-600 hover:bg-green-50 transition">
-                                        Unban
+                                    <a href="/{{ admin_route }}/unban_user/{{ u.id }}" class="w-24 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded text-xs font-bold transition shadow text-center">
+                                        <i class="fas fa-unlock mr-1"></i> Unban
                                     </a>
                                 {% else %}
-                                    <a href="/{{ admin_route }}/ban_user/{{ u.id }}" onclick="return confirm('Confirm restriction?')" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-l-md text-xs font-semibold text-orange-600 hover:bg-orange-50 transition">
-                                        Restrict
+                                    <a href="/{{ admin_route }}/ban_user/{{ u.id }}" onclick="return confirm('Are you sure you want to BAN this user?')" class="w-24 bg-orange-500 hover:bg-orange-600 text-white py-1.5 rounded text-xs font-bold transition shadow text-center">
+                                        <i class="fas fa-ban mr-1"></i> Ban User
                                     </a>
                                 {% endif %}
-                                <a href="/{{ admin_route }}/delete_user/{{ u.id }}" onclick="return confirm('DANGER: This cannot be undone!')" class="inline-flex items-center px-3 py-1.5 bg-white border-y border-r border-gray-300 rounded-r-md text-xs font-semibold text-red-600 hover:bg-red-50 transition">
-                                    <i class="fas fa-trash-alt"></i>
+
+                                <a href="/{{ admin_route }}/delete_user/{{ u.id }}" onclick="return confirm('WARNING: This will permanently DELETE the user. Cannot be undone!')" class="w-24 bg-red-600 hover:bg-red-700 text-white py-1.5 rounded text-xs font-bold transition shadow text-center">
+                                    <i class="fas fa-trash-alt mr-1"></i> Delete
                                 </a>
                             </div>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="4" class="px-6 py-12 text-center">
-                            <i class="fas fa-user-slash text-4xl text-gray-200 mb-3 block"></i>
-                            <span class="text-gray-400 font-medium">No users found in the database.</span>
+                        <td colspan="4" class="p-10 text-center">
+                            <div class="flex flex-col items-center justify-center text-gray-400">
+                                <i class="fas fa-users-slash text-5xl mb-4 text-gray-200"></i>
+                                <p class="text-lg font-medium">No users found on this page.</p>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -134,4 +164,41 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript for Search and Copy -->
+<script>
+    // Search Function (Filters the current page table)
+    function filterTable() {
+        var input, filter, table, tr, td, i, txtValue, allText;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("userTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 1; i < tr.length; i++) { // Start loop from 1 to skip header
+            // Combine text from Name, Email, and UID columns
+            allText = "";
+            let nameCol = tr[i].getElementsByTagName("td")[0];
+            let uidCol = tr[i].getElementsByTagName("td")[2];
+            
+            if (nameCol && uidCol) {
+                allText = nameCol.textContent + uidCol.textContent;
+                if (allText.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    // Copy UID Function
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            alert('User ID copied: ' + text);
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+        });
+    }
+</script>
 {% endblock %}
