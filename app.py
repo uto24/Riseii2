@@ -219,7 +219,8 @@ def logout():
     session.clear()
     flash("Logged out successfully.", "success")
     return redirect(url_for('auth'))
-    @app.route('/dashboard')
+    
+@app.route('/dashboard')
 @login_required
 def dashboard():
     uid = session['user_id']
