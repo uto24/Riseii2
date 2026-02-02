@@ -219,59 +219,47 @@ def logout():
     session.clear()
     flash("Logged out successfully.", "success")
     return redirect(url_for('auth'))
-    
-@app.route('/dashboard')
+    @app.route('/dashboard')
 @login_required
 def dashboard():
     uid = session['user_id']
     
-    # ১. ইউজারের তথ্য আনা
+    # ১. ইউজার ডাটা
     user_doc = db.collection('users').document(uid).get()
     if not user_doc.exists:
         session.clear()
         return redirect(url_for('auth'))
     user = user_doc.to_dict()
     
-    # ২. ব্যালেন্স হিস্টোরি আনা (সর্বশেষ ১০টি)
+    # ২. হিস্টোরি (৫০টি)
     balance_history = db.collection('balance_history')\
         .where(field_path='uid', op_string='==', value=uid)\
-        .order_by('timestamp', direction=Query.DESCENDING).limit(10).stream()
+        .order_by('timestamp', direction=Query.DESCENDING).limit(50).stream()
     history = [h.to_dict() for h in balance_history]
 
-    # ৩. রেফারেল লিস্ট আনা
+    # ৩. রেফারেলস
     referrals_stream = db.collection('users')\
         .where(field_path='referred_by', op_string='==', value=uid).stream()
-    referrals = [{'email': r.to_dict().get('email'), 'name': r.to_dict().get('name', 'Unknown'), 'joined': r.to_dict().get('created_at')} for r in referrals_stream]
+    referrals = [{'name': r.to_dict().get('name', 'Unknown'), 'joined': r.to_dict().get('created_at')} for r in referrals_stream]
 
-    # ৪. টাস্ক পরিসংখ্যান (Stats) বের করা
-    # দ্রষ্টব্য: বড় অ্যাপের জন্য এটি ডাটাবেসে কাউন্টার হিসেবে রাখা ভালো, তবে এখন রিয়েলটাইম কাউন্ট করছি
+    # ৪. টাস্ক স্ট্যাটস
     all_tasks = db.collection('task_submissions').where(field_path='uid', op_string='==', value=uid).stream()
-    
-    stats = {
-        'approved': 0,
-        'pending': 0,
-        'rejected': 0,
-        'total_earned_from_tasks': 0
-    }
-
-    # লুপ চালিয়ে কাউন্ট করা
+    stats = {'approved': 0, 'pending': 0, 'rejected': 0}
     for t in all_tasks:
-        data = t.to_dict()
-        status = data.get('status')
-        if status == 'approved':
-            stats['approved'] += 1
-        elif status == 'pending':
-            stats['pending'] += 1
-        elif status == 'rejected':
-            stats['rejected'] += 1
+        status = t.to_dict().get('status')
+        if status in stats: stats[status] += 1
+
+    # ✅ ৫. সিস্টেম নোটিশ আনা (NEW)
+    notice_doc = db.collection('settings').document('system_notice').get()
+    system_notice = notice_doc.to_dict() if notice_doc.exists else None
 
     return render_template('dashboard.html', 
                            user=user, 
                            history=history, 
                            referrals=referrals, 
                            stats=stats,
+                           system_notice=system_notice, # নতুন ডাটা পাস করা হলো
                            uid=uid)
-
 
 
 # --- 1. NEW ROUTE FOR USER MANAGEMENT (Add this block) ---
@@ -524,6 +512,17 @@ def admin_panel():
                 final_bal = (current_bal + new_amount) if action_type == 'add' else (current_bal - new_amount)
                 user_ref.update({'balance': final_bal})
                 flash("User balance updated.", "success")
+# [NEW] Update System Notice (Dashboard)
+        elif 'update_system_notice' in request.form:
+            notice_text = request.form.get('notice_text')
+            notice_link = request.form.get('notice_link')
+            
+            db.collection('settings').document('system_notice').set({
+                'text': notice_text,
+                'link': notice_link,
+                'updated_at': datetime.datetime.now()
+            })
+            flash("System Notice Updated on Dashboard!", "success")
 
     # --- 2tt. DATA FETCHING ---
     
