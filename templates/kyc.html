@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-xl mx-auto mt-6 mb-24 px-4">
+    
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 rounded-2xl shadow-lg text-white mb-6 text-center">
+        <h1 class="text-2xl font-bold mb-1">KYC Verification</h1>
+        <p class="text-xs text-blue-100 opacity-80">উইথড্র করার আগে আপনার পরিচয় নিশ্চিত করুন</p>
+    </div>
+
+    <!-- KYC Form -->
+    <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+        <form action="/submit_kyc" method="POST" class="space-y-4">
+            
+            <!-- Name -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Full Name (NID অনুযায়ী)</label>
+                <input type="text" name="name" placeholder="আপনার নাম লিখুন" required 
+                       class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+            </div>
+
+            <!-- Address -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Full Address</label>
+                <textarea name="address" rows="2" placeholder="জেলা, থানা, গ্রাম..." required 
+                          class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"></textarea>
+            </div>
+
+            <!-- Email (Readonly) -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Email</label>
+                <input type="email" name="email" value="{{ user.email }}" readonly 
+                       class="w-full border border-gray-200 bg-gray-50 p-3 rounded-xl text-gray-500 text-sm cursor-not-allowed">
+            </div>
+
+            <!-- Phone Number -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Phone Number</label>
+                <input type="number" name="phone" placeholder="017xxxxxxxx" required 
+                       class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+            </div>
+
+            <!-- Date of Birth -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Date of Birth</label>
+                <input type="date" name="dob" required 
+                       class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+            </div>
+
+            <!-- Education -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Education / Profession</label>
+                <select name="education" class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                    <option value="Student">Student</option>
+                    <option value="Job Holder">Job Holder</option>
+                    <option value="Business">Business</option>
+                    <option value="Freelancer">Freelancer</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl shadow-lg hover:bg-blue-700 transition transform active:scale-95 mt-2">
+                Verify Now
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
