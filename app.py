@@ -701,15 +701,33 @@ def delete_notice(notice_id):
     db.collection('notices').document(notice_id).delete()
     flash("Notice Deleted.", "success")
     return redirect(f'/{ADMIN_ROUTE}')
-
-@app.route('/notice')
+@app.route('/notice', methods=['GET', 'POST'])
 @login_required
 def notice():
-    # সব নোটিশ আনা (নতুন গুলো আগে)
+    # --- 1. HANDLE POST (ADMIN ONLY) ---
+    if request.method == 'POST':
+        # সিকিউরিটি চেক: শুধুমাত্র অ্যাডমিন পোস্ট করতে পারবে
+        if not session.get('is_admin'):
+            flash("Unauthorized access!", "error")
+            return redirect(url_for('notice'))
+
+        title = request.form.get('title')
+        message = request.form.get('message')
+        
+        if title and message:
+            db.collection('notices').add({
+                'title': title,
+                'message': message,
+                'date': datetime.datetime.now()
+            })
+            flash("নোটিশ সফলভাবে পোস্ট করা হয়েছে!", "success")
+        return redirect(url_for('notice'))
+
+    # --- 2. GET NOTICES ---
     notices_ref = db.collection('notices').order_by('date', direction=Query.DESCENDING).stream()
     notices = [{'id': n.id, **n.to_dict()} for n in notices_ref]
-    return render_template('notice.html', notices=notices)
     
+    return render_template('notice.html', notices=notices)
 @app.route(f'/{ADMIN_ROUTE}/approve_activation/<req_id>/<user_uid>')
 @admin_required
 def approve_activation(req_id, user_uid):
