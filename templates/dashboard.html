@@ -1,126 +1,182 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RiseiiZ | System Maintenance</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #00d4ff;
-            --accent: #7000ff;
-            --bg: #0f0f12;
-            --card: #1a1a1f;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        .container {
-            text-align: center;
-            background: var(--card);
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid #333;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            max-width: 450px;
-            position: relative;
-        }
-
-        .brand {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: 2px;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-
-        .fa-server {
-            font-size: 3rem;
-            color: var(--primary);
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .status-badge {
-            display: inline-block;
-            background: rgba(0, 212, 255, 0.1);
-            color: var(--primary);
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            font-weight: bold;
-            margin-bottom: 20px;
-            border: 1px solid var(--primary);
-        }
-
-        h2 { margin: 10px 0; font-weight: 300; }
-
-        .time {
-            font-size: 1.5rem;
-            color: #ffcc00;
-            margin: 20px 0;
-            font-weight: bold;
-        }
-
-        .notice-box {
-            background: #25252b;
-            border-left: 4px solid var(--accent);
-            padding: 15px;
-            margin-top: 30px;
-            text-align: left;
-            font-size: 0.9rem;
-        }
-
-        .notice-title {
-            font-weight: bold;
-            color: var(--accent);
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .fa-circle-exclamation { margin-right: 8px; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="brand">RISEIIZ</div>
-    <i class="fa-solid fa-server"></i>
+{% block content %}
+<style>
+    /* Styles */
+    .glass-header { background: #ffffff; border-bottom: 1px solid #f3f4f6; padding-bottom: 10px; }
+    .icon-box { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 10px; margin-bottom: 4px; }
+    .stat-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; text-align: center; }
     
-    <div class="status-badge">System Restarting</div>
-    
-    <h2>We'll be back soon</h2>
-    
-    <div class="time">
-        <i class="fa-regular fa-clock"></i> Opening at 1:00 PM
+    /* 🔥 BIG AD CONTAINER */
+    .ad-container-large {
+        width: 100%;
+        min-height: 100px; /* বড় জায়গা */
+        background: #f0fdf4;
+        border: 2px dashed #86efac;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        overflow: hidden;
+        padding: 5px;
+    }
+</style>
+
+<!-- 1. PROFILE HEADER -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 mb-3 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-md">
+            {{ user.name[0] if user.name else user.email[0] }}
+        </div>
+        <div class="leading-tight">
+            <h2 class="text-sm font-bold text-gray-800">{{ user.name }}</h2>
+            <p class="text-[10px] text-gray-500">{{ user.email }}</p>
+            <span class="text-[9px] bg-green-100 text-green-700 px-1.5 rounded uppercase font-bold">{{ user.role }}</span>
+        </div>
     </div>
-
-    <div class="notice-box">
-        <span class="notice-title">
-            <i class="fa-solid fa-circle-exclamation"></i>IMPORTANT NOTICE
-        </span>
-        All active sessions have been saved. Database optimization is currently at 85%. Please do not attempt to login until the window opens.
+    <div class="text-right">
+        <p class="text-[9px] text-gray-400 uppercase font-bold">ব্যালেন্স</p>
+        <h1 class="text-xl font-black text-blue-600">৳ {{ user.balance }}</h1>
     </div>
 </div>
 
-</body>
-</html>
+<!-- ✅ 2. DYNAMIC SYSTEM NOTICE -->
+{% if system_notice and system_notice.text %}
+<div class="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-orange-500 p-3 rounded-r-lg mb-4 shadow-sm relative overflow-hidden">
+    <div class="flex items-start gap-3">
+        <div class="bg-orange-100 p-1.5 rounded-full text-orange-600 mt-0.5 animate-pulse">
+            <i class="fas fa-bell text-sm"></i>
+        </div>
+        <div class="flex-1">
+            <h4 class="text-xs font-bold text-orange-800 uppercase mb-1">System Notice</h4>
+            <p class="text-sm text-gray-800 leading-tight">
+                {{ system_notice.text }}
+            </p>
+            
+            {% if system_notice.link %}
+            <a href="{{ system_notice.link }}" target="_blank" class="inline-block mt-2 text-[10px] font-bold bg-orange-600 text-white px-3 py-1 rounded-full hover:bg-orange-700 transition">
+                বিস্তারিত দেখুন <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ✅ 3. LARGE ADVERTISEMENT SECTION -->
+<div class="ad-container-large">
+    <!-- আপনার দেওয়া অ্যাড কোড (চাইলে অন্য বড় সাইজের অ্যাড বসাতে পারেন) -->
+    <script> atOptions = { 'key' : '4bbf33f7474813a836b5f0f70829032c', 'format' : 'iframe', 'height' : 60, 'width' : 468, 'params' : {} }; </script> 
+    <script src="https://www.highperformanceformat.com/4bbf33f7474813a836b5f0f70829032c/invoke.js"></script>
+</div>
+
+<!-- 4. ACTION GRID -->
+<div class="grid grid-cols-4 gap-2 mb-3">
+    <a href="/tasks" class="flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border border-gray-100 active:scale-95 transition">
+        <div class="icon-box bg-blue-100 text-blue-600"><i class="fas fa-briefcase text-sm"></i></div>
+        <span class="text-[10px] font-bold text-gray-700">কাজ করুন</span>
+    </a>
+    <a href="/withdraw" class="flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border border-gray-100 active:scale-95 transition">
+        <div class="icon-box bg-green-100 text-green-600"><i class="fas fa-wallet text-sm"></i></div>
+        <span class="text-[10px] font-bold text-gray-700">উত্তোলন</span>
+    </a>
+    <a href="/tutorial" class="flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border border-gray-100 active:scale-95 transition">
+        <div class="icon-box bg-purple-100 text-purple-600"><i class="fas fa-play text-sm"></i></div>
+        <span class="text-[10px] font-bold text-gray-700">টিউটোরিয়াল</span>
+    </a>
+    <a href="https://t.me/securehx" class="flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border border-gray-100 active:scale-95 transition">
+        <div class="icon-box bg-orange-100 text-orange-600"><i class="fab fa-telegram-plane text-sm"></i></div>
+        <span class="text-[10px] font-bold text-gray-700">সাপোর্ট</span>
+    </a>
+</div>
+
+<!-- 5. STATS ROW -->
+<div class="grid grid-cols-3 gap-2 mb-3">
+    <div class="stat-box"><p class="text-[9px] text-gray-400 font-bold uppercase">Approved</p><p class="text-sm font-black text-green-600">{{ stats.approved }}</p></div>
+    <div class="stat-box"><p class="text-[9px] text-gray-400 font-bold uppercase">Pending</p><p class="text-sm font-black text-yellow-500">{{ stats.pending }}</p></div>
+    <div class="stat-box"><p class="text-[9px] text-gray-400 font-bold uppercase">Rejected</p><p class="text-sm font-black text-red-500">{{ stats.rejected }}</p></div>
+</div>
+
+<!-- 6. REFERRAL -->
+<div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-lg p-3 text-white shadow-md mb-3">
+    <div class="flex justify-between items-center mb-2">
+        <div>
+            <p class="text-[10px] text-blue-200 uppercase font-bold">Refer & Earn</p>
+            <h3 class="text-xs font-bold">Invite friends, Get ৳10</h3>
+        </div>
+        <div class="text-right">
+            <p class="text-[9px] text-blue-200">Total Earned</p>
+            <p class="text-sm font-bold">৳ {{ user.referral_count * 10 }}</p>
+        </div>
+    </div>
+    <div class="flex gap-2 bg-black/20 p-1.5 rounded-md border border-white/10">
+        <input type="text" value="{{ request.url_root }}auth?ref={{ session.user_id }}" id="refLink" readonly class="w-full bg-transparent border-none text-white text-[10px] px-1 focus:ring-0 truncate">
+        <button onclick="copyRef()" class="bg-white text-blue-900 px-3 py-1 rounded text-[10px] font-black hover:bg-gray-100">COPY</button>
+    </div>
+</div>
+
+<!-- 7. HISTORY & TEAM -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-20">
+    <div class="flex border-b border-gray-100">
+        <button onclick="showTab('history')" id="btn-history" class="flex-1 py-3 text-[10px] font-bold uppercase tracking-wider text-blue-600 border-b-2 border-blue-600 bg-blue-50">লেনদেন হিস্টোরি</button>
+        <button onclick="showTab('referrals')" id="btn-referrals" class="flex-1 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500">আমার টিম ({{ referrals|length }})</button>
+    </div>
+    
+    <div id="tab-history" class="max-h-60 overflow-y-auto">
+        {% for h in history %}
+        <div class="p-3 border-b border-gray-50 flex justify-between items-center hover:bg-gray-50">
+            <div>
+                {% if h.type == 'withdraw_hold' %}<p class="font-bold text-xs text-yellow-600">Pending Review</p>
+                {% elif h.type == 'withdraw_paid' %}<p class="font-bold text-xs text-green-600">Withdraw Paid</p>
+                {% else %}<p class="font-bold text-xs text-gray-800 capitalize">{{ h.type.replace('_', ' ') }}</p>{% endif %}
+                <p class="text-[9px] text-gray-400 mt-0.5">{{ h.timestamp.strftime('%d %b, %I:%M %p') }}</p>
+            </div>
+            <p class="font-bold text-xs {{ 'text-red-500' if h.amount < 0 else 'text-green-600' }}">{{ '+' if h.amount > 0 else '' }}{{ h.amount }}</p>
+        </div>
+        {% else %}
+        <p class="text-center text-[10px] text-gray-400 py-6">কোনো লেনদেন পাওয়া যায়নি</p>
+        {% endfor %}
+    </div>
+
+    <div id="tab-referrals" class="hidden max-h-60 overflow-y-auto">
+        {% for ref in referrals %}
+        <div class="p-3 border-b border-gray-50 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500">{{ ref.name[0] }}</div>
+                <div><p class="font-bold text-xs text-gray-800">{{ ref.name }}</p><p class="text-[9px] text-gray-400">{{ ref.joined.strftime('%d %b') }}</p></div>
+            </div>
+            <span class="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">Active</span>
+        </div>
+        {% else %}
+        <p class="text-center text-[10px] text-gray-400 py-6">আপনার কোনো রেফারেল নেই</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function copyRef() {
+        var copyText = document.getElementById("refLink");
+        copyText.select();
+        document.execCommand("copy");
+        const btn = event.target;
+        btn.innerText = "COPIED";
+        setTimeout(() => btn.innerText = "COPY", 2000);
+    }
+    function showTab(tabName) {
+        const hTab = document.getElementById('tab-history');
+        const rTab = document.getElementById('tab-referrals');
+        const hBtn = document.getElementById('btn-history');
+        const rBtn = document.getElementById('btn-referrals');
+        if(tabName === 'history') {
+            hTab.classList.remove('hidden'); rTab.classList.add('hidden');
+            hBtn.classList.add('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50'); hBtn.classList.remove('text-gray-500');
+            rBtn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50'); rBtn.classList.add('text-gray-500');
+        } else {
+            rTab.classList.remove('hidden'); hTab.classList.add('hidden');
+            rBtn.classList.add('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50'); rBtn.classList.remove('text-gray-500');
+            hBtn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600', 'bg-blue-50'); hBtn.classList.add('text-gray-500');
+        }
+    }
+</script>
+{% endblock %}
