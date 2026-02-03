@@ -1,126 +1,293 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RiseiiZ | System Maintenance</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #00d4ff;
-            --accent: #7000ff;
-            --bg: #0f0f12;
-            --card: #1a1a1f;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
+{% block content %}
+<!-- Font for Bangla -->
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Hind Siliguri', sans-serif; }
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+    }
+</style>
 
-        .container {
-            text-align: center;
-            background: var(--card);
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid #333;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            max-width: 450px;
-            position: relative;
-        }
-
-        .brand {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: 2px;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-
-        .fa-server {
-            font-size: 3rem;
-            color: var(--primary);
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .status-badge {
-            display: inline-block;
-            background: rgba(0, 212, 255, 0.1);
-            color: var(--primary);
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            font-weight: bold;
-            margin-bottom: 20px;
-            border: 1px solid var(--primary);
-        }
-
-        h2 { margin: 10px 0; font-weight: 300; }
-
-        .time {
-            font-size: 1.5rem;
-            color: #ffcc00;
-            margin: 20px 0;
-            font-weight: bold;
-        }
-
-        .notice-box {
-            background: #25252b;
-            border-left: 4px solid var(--accent);
-            padding: 15px;
-            margin-top: 30px;
-            text-align: left;
-            font-size: 0.9rem;
-        }
-
-        .notice-title {
-            font-weight: bold;
-            color: var(--accent);
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .fa-circle-exclamation { margin-right: 8px; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="brand">RISEIIZ</div>
-    <i class="fa-solid fa-server"></i>
+<div class="min-h-screen flex items-center justify-center p-4 -mt-10">
     
-    <div class="status-badge">System Restarting</div>
-    
-    <h2>We'll be back soon</h2>
-    
-    <div class="time">
-        <i class="fa-regular fa-clock"></i> Opening at 1:00 PM
-    </div>
+    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-5xl w-full flex flex-col md:flex-row">
+        
+        <!-- LEFT SIDE: Content & Branding (Hidden on Mobile) -->
+        <div class="hidden md:flex flex-col justify-between w-1/2 bg-gradient-to-br from-blue-600 to-purple-700 p-12 text-white relative overflow-hidden">
+            <!-- Background Shape -->
+            <div class="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+            <div class="absolute bottom-0 left-0 -ml-10 -mb-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
 
-    <div class="notice-box">
-        <span class="notice-title">
-            <i class="fa-solid fa-circle-exclamation"></i>IMPORTANT NOTICE
-        </span>
-        All active sessions have been saved. Database optimization is currently at 85%. Please do not attempt to login until the window opens.
+            <div>
+                <h1 class="text-4xl font-bold mb-4">Riseii-তে আপনাকে স্বাগতম</h1>
+                <p class="text-blue-100 text-lg">বাংলাদেশের সবচেয়ে নির্ভরযোগ্য আর্নিং প্ল্যাটফর্ম।</p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">সহজ পেমেন্ট</h3>
+                        <p class="text-sm text-blue-100">বিকাশ এবং নগদের মাধ্যমে দ্রুত টাকা তুলুন।</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">নিরাপদ সিস্টেম</h3>
+                        <p class="text-sm text-blue-100">আপনার তথ্য এবং ব্যালেন্স সম্পূর্ণ সুরক্ষিত।</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">রেফারেল বোনাস</h3>
+                        <p class="text-sm text-blue-100">বন্ধুদের ইনভাইট করে আজীবন আয় করুন।</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-sm opacity-70">
+                &copy; 2026 Riseii Community.
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Auth Form -->
+        <div class="w-full md:w-1/2 p-8 md:p-12 bg-white">
+            
+            <div class="text-center mb-8">
+                <h2 id="form-title" class="text-3xl font-bold text-gray-800">ফিরে আসার জন্য ধন্যবাদ</h2>
+                <p id="form-subtitle" class="text-gray-500 mt-2">আপনার একাউন্টে লগইন করুন</p>
+            </div>
+
+            <!-- Google Button -->
+            <button onclick="handleGoogleAuth()" type="button" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-3.5 px-4 rounded-xl transition duration-300 shadow-sm group">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6 group-hover:scale-110 transition" alt="Google">
+                <span>Google দিয়ে চালিয়ে যান</span>
+            </button>
+
+            <div class="relative my-8">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-4 bg-white text-gray-500 font-medium">অথবা ইমেইল ব্যবহার করুন</span>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <div id="auth-form" class="space-y-5">
+                
+                <!-- Signup Fields (Hidden initially) -->
+                <div id="signup-fields" class="hidden space-y-5">
+                    <div class="relative group">
+                        <i class="fas fa-user absolute left-4 top-4 text-gray-400 group-focus-within:text-blue-600 transition"></i>
+                        <input type="text" id="name" placeholder="আপনার পুরো নাম" class="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50 focus:bg-white">
+                    </div>
+                    
+                    <div class="relative group">
+                        <i class="fab fa-facebook absolute left-4 top-4 text-gray-400 group-focus-within:text-blue-600 transition"></i>
+                        <input type="url" id="fb_link" placeholder="ফেসবুক প্রোফাইল লিংক (ঐচ্ছিক)" class="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50 focus:bg-white">
+                    </div>
+
+                    <div class="relative group">
+                        <i class="fas fa-gift absolute left-4 top-4 text-gray-400 group-focus-within:text-blue-600 transition"></i>
+                        <input type="text" id="ref_code_input" placeholder="রেফার কোড (যদি থাকে)" class="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-gray-50 focus:bg-white">
+                    </div>
+                </div>
+
+                <!-- Common Fields -->
+                <div class="relative group">
+                    <i class="fas fa-envelope absolute left-4 top-4 text-gray-400 group-focus-within:text-blue-600 transition"></i>
+                    <input type="email" id="email" placeholder="ইমেইল এড্রেস" class="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50 focus:bg-white">
+                </div>
+
+                <div class="relative group">
+                    <i class="fas fa-lock absolute left-4 top-4 text-gray-400 group-focus-within:text-blue-600 transition"></i>
+                    <input type="password" id="password" placeholder="পাসওয়ার্ড" class="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50 focus:bg-white">
+                </div>
+
+                <!-- Submit Button -->
+                <button id="submit-btn" onclick="handleAuth()" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:to-blue-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-95 text-lg">
+                    লগইন করুন
+                </button>
+            </div>
+
+            <!-- Error Message -->
+            <div id="status-container" class="hidden mt-4 p-3 rounded-lg bg-red-50 border border-red-100 text-center">
+                <p id="status" class="text-sm font-medium text-red-600"></p>
+            </div>
+
+            <!-- Toggle Link -->
+            <p class="text-center text-gray-600 mt-8">
+                <span id="toggle-text">এখনো একাউন্ট নেই?</span> 
+                <button onclick="toggleMode()" class="text-blue-600 font-bold hover:underline ml-1">নতুন একাউন্ট খুলুন</button>
+            </p>
+        </div>
     </div>
 </div>
 
-</body>
-</html>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+<script>
+    const firebaseConfig = {{ config|tojson }};
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+    let isSignup = false;
+
+    // Check URL for Referral Code
+    const urlParams = new URLSearchParams(window.location.search);
+    const refParam = urlParams.get('ref');
+    if (refParam) {
+        document.getElementById('ref_code_input').value = refParam;
+        localStorage.setItem('referral_code', refParam);
+        toggleMode(); // Auto switch to signup if ref link exists
+    }
+
+    function toggleMode() {
+        isSignup = !isSignup;
+        const signupFields = document.getElementById('signup-fields');
+        const title = document.getElementById('form-title');
+        const subtitle = document.getElementById('form-subtitle');
+        const btn = document.getElementById('submit-btn');
+        const toggleText = document.getElementById('toggle-text');
+        const toggleBtn = toggleText.nextElementSibling;
+        const statusBox = document.getElementById('status-container');
+        
+        // Hide error when switching
+        statusBox.classList.add('hidden');
+
+        if (isSignup) {
+            signupFields.classList.remove('hidden');
+            title.innerText = "একাউন্ট তৈরি করুন";
+            subtitle.innerText = "Riseii-তে জয়েন করুন এবং আয় শুরু করুন";
+            btn.innerText = "একাউন্ট খুলুন";
+            toggleText.innerText = "অলরেডি একাউন্ট আছে?";
+            toggleBtn.innerText = "লগইন করুন";
+        } else {
+            signupFields.classList.add('hidden');
+            title.innerText = "ফিরে আসার জন্য ধন্যবাদ";
+            subtitle.innerText = "আপনার একাউন্টে লগইন করুন";
+            btn.innerText = "লগইন করুন";
+            toggleText.innerText = "এখনো একাউন্ট নেই?";
+            toggleBtn.innerText = "নতুন একাউন্ট খুলুন";
+        }
+    }
+
+    function showStatus(msg, type='error') {
+        const box = document.getElementById('status-container');
+        const text = document.getElementById('status');
+        
+        box.classList.remove('hidden');
+        text.innerText = msg;
+
+        if(type === 'success') {
+            box.className = "mt-4 p-3 rounded-lg bg-green-50 border border-green-100 text-center";
+            text.className = "text-sm font-medium text-green-600";
+        } else if (type === 'processing') {
+            box.className = "mt-4 p-3 rounded-lg bg-blue-50 border border-blue-100 text-center";
+            text.className = "text-sm font-medium text-blue-600";
+            text.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> তথ্য যাচাই করা হচ্ছে...';
+        } else {
+            box.className = "mt-4 p-3 rounded-lg bg-red-50 border border-red-100 text-center";
+            text.className = "text-sm font-medium text-red-600";
+        }
+    }
+
+    async function sendToServer(idToken, extraData = {}) {
+        const refCode = document.getElementById('ref_code_input').value || localStorage.getItem('referral_code');
+        
+        const payload = {
+            idToken: idToken,
+            refCode: isSignup ? refCode : null,
+            ...extraData
+        };
+
+        const res = await fetch('/session_login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await res.json();
+        
+        if(res.status === 403) {
+            showStatus(data.message, 'error');
+        } else if(data.status === 'success') {
+            showStatus("লগইন সফল হয়েছে! ড্যাশবোর্ডে নেওয়া হচ্ছে...", "success");
+            setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+        } else {
+            showStatus("সার্ভার এরর: " + data.message, 'error');
+        }
+    }
+
+    async function handleAuth() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const name = document.getElementById('name').value;
+        const fbLink = document.getElementById('fb_link').value;
+
+        if(!email || !pass) { showStatus("দয়া করে ইমেইল এবং পাসওয়ার্ড দিন", 'error'); return; }
+        if(isSignup && !name) { showStatus("আপনার নামটি লিখুন", 'error'); return; }
+
+        showStatus("", 'processing');
+
+        try {
+            let userCred;
+            if(isSignup) {
+                userCred = await auth.createUserWithEmailAndPassword(email, pass);
+                await sendToServer(await userCred.user.getIdToken(), {
+                    name: name,
+                    fb_link: fbLink
+                });
+            } else {
+                userCred = await auth.signInWithEmailAndPassword(email, pass);
+                await sendToServer(await userCred.user.getIdToken());
+            }
+        } catch(error) {
+            let msg = error.message;
+            if (error.code === 'auth/email-already-in-use') msg = "এই ইমেইল দিয়ে আগেই একাউন্ট খোলা হয়েছে। লগইন করুন।";
+            if (error.code === 'auth/wrong-password') msg = "ভুল পাসওয়ার্ড দিয়েছেন।";
+            if (error.code === 'auth/user-not-found') msg = "এই ইমেইলে কোনো একাউন্ট পাওয়া যায়নি।";
+            if (error.code === 'auth/weak-password') msg = "পাসওয়ার্ড অন্তত ৬ সংখ্যার হতে হবে।";
+            showStatus(msg, 'error');
+        }
+    }
+
+    async function handleGoogleAuth() {
+        showStatus("", 'processing');
+        
+        try {
+            const result = await auth.signInWithPopup(googleProvider);
+            await sendToServer(await result.user.getIdToken(), {
+                name: result.user.displayName,
+                fb_link: "" 
+            });
+        } catch (error) {
+            console.error("Google Auth Error:", error);
+            let msg = error.message;
+            if (error.code === 'auth/unauthorized-domain') {
+                msg = "ডোমেইন অথোরাইজ করা নেই। অনুগ্রহ করে অ্যাডমিনকে জানান।";
+            } else if (error.code === 'auth/popup-closed-by-user') {
+                msg = "লগইন বাতিল করা হয়েছে।";
+            }
+            showStatus(msg, 'error');
+        }
+    }
+</script>
+{% endblock %}
