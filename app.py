@@ -358,74 +358,59 @@ def delete_user(uid):
 def tasks():
     uid = session['user_id']
     
-    # --- TASK SUBMISSION LOGIC ---
+    # --- 1. TASK SUBMISSION (POST) ---
     if request.method == 'POST':
         task_id = request.form.get('task_id')
         
-        # Security: Check duplicate submission
-        existing_sub = db.collection('task_submissions').where(
+        # ডুপ্লিকেট সাবমিশন চেক
+        existing = db.collection('task_submissions').where(
             field_path='uid', op_string='==', value=uid
         ).where(
             field_path='task_id', op_string='==', value=task_id
         ).get()
-            
-        if existing_sub:
-            flash("You have already submitted this task!", "error")
+        
+        if existing:
+            flash("Already submitted!", "error")
             return redirect(url_for('tasks'))
 
-        task_type = request.form.get('task_type')
-        submission_data = {
+        # সাবমিশন সেভ করা
+        db.collection('task_submissions').add({
             'uid': uid,
             'task_id': task_id,
             'status': 'pending',
             'timestamp': datetime.datetime.now(),
-            'email': session['email']
-        }
-        
-        # Image Upload
-        if 'image' in request.files and request.files['image'].filename != '':
-            img_url = upload_to_imgbb(request.files['image'])
-            if not img_url:
-                flash("Image upload failed.", "error")
-                return redirect(url_for('tasks'))
-            submission_data['proof'] = img_url
-            submission_data['proof_type'] = 'image'
-        else:
-            submission_data['proof'] = request.form.get('proof_text')
-            submission_data['proof_type'] = 'text/link'
-            
-        db.collection('task_submissions').add(submission_data)
-        flash("Task submitted for review!", "success")
+            'email': session['email'],
+            'proof': upload_to_imgbb(request.files['image']) if 'image' in request.files else request.form.get('proof_text'),
+            'proof_type': 'image' if 'image' in request.files else 'text'
+        })
+        flash("Task submitted successfully!", "success")
         return redirect(url_for('tasks'))
 
-    # --- GET TASKS LIST (FILTERED) ---
+    # --- 2. GET ONLY 2 TASKS (QUOTA SAVER) ---
     
-    # ১. সব টাস্ক আনো
-    tasks_ref = db.collection('tasks').stream()
+    # ইউজার কোন কাজগুলো করেছে তার লিস্ট
+    user_subs = db.collection('task_submissions').where(field_path='uid', op_string='==', value=uid).stream()
+    done_ids = [s.to_dict().get('task_id') for s in user_subs]
+
+    # ডাটাবেস থেকে লেটেস্ট ১০টি টাস্ক আনা (যাতে ফিল্টার করে অন্তত ২টা পাওয়া যায়)
+    # limit(10) দেওয়া হয়েছে সেফটির জন্য, কিন্তু আমরা লুপ ব্রেক করে ২টাই নিব।
+    tasks_query = db.collection('tasks').order_by('created_at', direction=Query.DESCENDING).limit(10).stream()
     
-    # ২. ইউজার যা সাবমিট করেছে তা আনো
-    user_submissions = db.collection('task_submissions').where(
-        field_path='uid', op_string='==', value=uid
-    ).stream()
-    
-    # সাবমিট করা টাস্কের আইডি লিস্ট
-    submitted_task_ids = [sub.to_dict().get('task_id') for sub in user_submissions]
-    
-    tasks_list = []
-    for t in tasks_ref:
-        # ৩. ফিল্টার লজিক: যদি টাস্কটি অলরেডি করা থাকে, তবে বাদ দাও (continue)
-        if t.id in submitted_task_ids:
-            continue 
+    final_tasks = []
+    count = 0
+
+    for t in tasks_query:
+        if t.id not in done_ids: # যদি করা না থাকে
+            t_data = t.to_dict()
+            t_data['id'] = t.id
+            final_tasks.append(t_data)
+            count += 1
             
-        # যদি করা না থাকে, তবেই লিস্টে যোগ করো
-        task_data = t.to_dict()
-        task_data['id'] = t.id
-        tasks_list.append(task_data)
-    
-    # Sort manually (New tasks first)
-    tasks_list.sort(key=lambda x: str(x.get('created_at', '')), reverse=True)
-    
-    return render_template('tasks.html', tasks=tasks_list)
+            # ✅ ২টা টাস্ক পাওয়া গেলে লুপ থামিয়ে দিবে
+            if count >= 2:
+                break
+
+    return render_template('tasks.html', tasks=final_tasks)
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
