@@ -94,6 +94,40 @@ def upload_to_imgbb(image_file):
         print(f"Upload Error: {e}")
     return None
 
+# --- HELPER: AUTOMATIC CLEANUP FUNCTION ---
+def cleanup_old_data():
+    try:
+        # ১৫ দিন আগের সময় বের করা
+        cutoff_date = datetime.datetime.now() - timedelta(days=15)
+        
+        # ১. Task Submissions ডিলিট
+        old_tasks = db.collection('task_submissions').where(
+            field_path='timestamp', op_string='<', value=cutoff_date
+        ).limit(50).stream()
+        
+        for doc in old_tasks:
+            doc.reference.delete()
+
+        # ২. Balance History ডিলিট
+        old_history = db.collection('balance_history').where(
+            field_path='timestamp', op_string='<', value=cutoff_date
+        ).limit(50).stream()
+        
+        for doc in old_history:
+            doc.reference.delete()
+
+        # ৩. Withdraw Requests (শুধুমাত্র Paid/Rejected) ডিলিট
+        old_withdraws = db.collection('withdraw_requests').where(
+            field_path='timestamp', op_string='<', value=cutoff_date
+        ).limit(50).stream()
+        
+        for doc in old_withdraws:
+            data = doc.to_dict()
+            if data.get('status') in ['paid', 'rejected']:
+                doc.reference.delete()
+                
+    except Exception as e:
+        print(f"Cleanup Error: {e}")
 # --- ROUTES ---
 @app.route('/')
 def index():
