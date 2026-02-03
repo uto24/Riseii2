@@ -694,13 +694,6 @@ def admin_panel():
                            pending_withdraws=pending_withdraws,
                            activation_requests=activation_requests,
                            active_tasks=active_tasks)
-
-@app.route(f'/{ADMIN_ROUTE}/delete_notice/<notice_id>')
-@admin_required
-def delete_notice(notice_id):
-    db.collection('notices').document(notice_id).delete()
-    flash("Notice Deleted.", "success")
-    return redirect(f'/{ADMIN_ROUTE}')
 @app.route('/notice', methods=['GET', 'POST'])
 @login_required
 def notice():
