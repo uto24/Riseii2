@@ -9,6 +9,13 @@
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
     }
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 
 <div class="min-h-screen flex items-center justify-center p-4 -mt-10">
@@ -17,7 +24,6 @@
         
         <!-- LEFT SIDE: Content & Branding (Hidden on Mobile) -->
         <div class="hidden md:flex flex-col justify-between w-1/2 bg-gradient-to-br from-blue-600 to-purple-700 p-12 text-white relative overflow-hidden">
-            <!-- Background Shape -->
             <div class="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
             <div class="absolute bottom-0 left-0 -ml-10 -mb-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
 
@@ -39,11 +45,11 @@
 
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
-                        <i class="fas fa-shield-alt"></i>
+                        <i class="fas fa-check-circle"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-lg">নিরাপদ সিস্টেম</h3>
-                        <p class="text-sm text-blue-100">আপনার তথ্য এবং ব্যালেন্স সম্পূর্ণ সুরক্ষিত।</p>
+                        <h3 class="font-bold text-lg">ভেরিফাইড ইউজার</h3>
+                        <p class="text-sm text-blue-100">শুধুমাত্র সিরিয়াস মেম্বারদের কমিউনিটি।</p>
                     </div>
                 </div>
 
@@ -64,11 +70,26 @@
         </div>
 
         <!-- RIGHT SIDE: Auth Form -->
-        <div class="w-full md:w-1/2 p-8 md:p-12 bg-white">
+        <div class="w-full md:w-1/2 p-8 md:p-12 bg-white relative">
             
-            <div class="text-center mb-8">
+            <div class="text-center mb-6">
                 <h2 id="form-title" class="text-3xl font-bold text-gray-800">ফিরে আসার জন্য ধন্যবাদ</h2>
                 <p id="form-subtitle" class="text-gray-500 mt-2">আপনার একাউন্টে লগইন করুন</p>
+            </div>
+
+            <!-- ⚠️ ACTIVATION FEE NOTICE (Initially Hidden) -->
+            <div id="activation-notice" class="hidden mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm animate-fade-in">
+                <div class="flex items-start gap-3">
+                    <div class="text-amber-500 mt-0.5">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-amber-800">গুরুত্বপূর্ণ নোটিশ</h4>
+                        <p class="text-xs text-amber-700 mt-1 leading-relaxed">
+                            স্প্যাম বা ফেইক ইউজার রোধ করতে একাউন্ট অ্যাক্টিভেশনের জন্য এককালীন <span class="font-bold text-red-600 bg-red-50 px-1 rounded">৩০ টাকা</span> ফি প্রযোজ্য হবে। আপনি রাজি থাকলে একাউন্ট খুলুন।
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <!-- Google Button -->
@@ -77,7 +98,7 @@
                 <span>Google দিয়ে চালিয়ে যান</span>
             </button>
 
-            <div class="relative my-8">
+            <div class="relative my-6">
                 <div class="absolute inset-0 flex items-center">
                     <div class="w-full border-t border-gray-200"></div>
                 </div>
@@ -87,10 +108,10 @@
             </div>
 
             <!-- Form -->
-            <div id="auth-form" class="space-y-5">
+            <div id="auth-form" class="space-y-4">
                 
                 <!-- Signup Fields (Hidden initially) -->
-                <div id="signup-fields" class="hidden space-y-5">
+                <div id="signup-fields" class="hidden space-y-4 animate-fade-in">
                     <div class="relative group">
                         <i class="fas fa-user absolute left-4 top-4 text-gray-400 group-focus-within:text-blue-600 transition"></i>
                         <input type="text" id="name" placeholder="আপনার পুরো নাম" class="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50 focus:bg-white">
@@ -115,7 +136,7 @@
 
                 <div class="relative group">
                     <i class="fas fa-lock absolute left-4 top-4 text-gray-400 group-focus-within:text-blue-600 transition"></i>
-                    <input type="password" id="password" placeholder="পাসওয়ার্ড" class="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50 focus:bg-white">
+                    <input type="password" id="password" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" class="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50 focus:bg-white">
                 </div>
 
                 <!-- Submit Button -->
@@ -125,12 +146,12 @@
             </div>
 
             <!-- Error Message -->
-            <div id="status-container" class="hidden mt-4 p-3 rounded-lg bg-red-50 border border-red-100 text-center">
+            <div id="status-container" class="hidden mt-4 p-3 rounded-lg bg-red-50 border border-red-100 text-center animate-fade-in">
                 <p id="status" class="text-sm font-medium text-red-600"></p>
             </div>
 
             <!-- Toggle Link -->
-            <p class="text-center text-gray-600 mt-8">
+            <p class="text-center text-gray-600 mt-6 text-sm">
                 <span id="toggle-text">এখনো একাউন্ট নেই?</span> 
                 <button onclick="toggleMode()" class="text-blue-600 font-bold hover:underline ml-1">নতুন একাউন্ট খুলুন</button>
             </p>
@@ -156,7 +177,7 @@
     if (refParam) {
         document.getElementById('ref_code_input').value = refParam;
         localStorage.setItem('referral_code', refParam);
-        toggleMode(); // Auto switch to signup if ref link exists
+        toggleMode();
     }
 
     function toggleMode() {
@@ -168,12 +189,13 @@
         const toggleText = document.getElementById('toggle-text');
         const toggleBtn = toggleText.nextElementSibling;
         const statusBox = document.getElementById('status-container');
+        const noticeBox = document.getElementById('activation-notice'); // Notice Element
         
-        // Hide error when switching
         statusBox.classList.add('hidden');
 
         if (isSignup) {
             signupFields.classList.remove('hidden');
+            noticeBox.classList.remove('hidden'); // Show Notice on Signup
             title.innerText = "একাউন্ট তৈরি করুন";
             subtitle.innerText = "Riseii-তে জয়েন করুন এবং আয় শুরু করুন";
             btn.innerText = "একাউন্ট খুলুন";
@@ -181,6 +203,7 @@
             toggleBtn.innerText = "লগইন করুন";
         } else {
             signupFields.classList.add('hidden');
+            noticeBox.classList.add('hidden'); // Hide Notice on Login
             title.innerText = "ফিরে আসার জন্য ধন্যবাদ";
             subtitle.innerText = "আপনার একাউন্টে লগইন করুন";
             btn.innerText = "লগইন করুন";
@@ -197,14 +220,14 @@
         text.innerText = msg;
 
         if(type === 'success') {
-            box.className = "mt-4 p-3 rounded-lg bg-green-50 border border-green-100 text-center";
+            box.className = "mt-4 p-3 rounded-lg bg-green-50 border border-green-100 text-center animate-fade-in";
             text.className = "text-sm font-medium text-green-600";
         } else if (type === 'processing') {
-            box.className = "mt-4 p-3 rounded-lg bg-blue-50 border border-blue-100 text-center";
+            box.className = "mt-4 p-3 rounded-lg bg-blue-50 border border-blue-100 text-center animate-fade-in";
             text.className = "text-sm font-medium text-blue-600";
             text.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> তথ্য যাচাই করা হচ্ছে...';
         } else {
-            box.className = "mt-4 p-3 rounded-lg bg-red-50 border border-red-100 text-center";
+            box.className = "mt-4 p-3 rounded-lg bg-red-50 border border-red-100 text-center animate-fade-in";
             text.className = "text-sm font-medium text-red-600";
         }
     }
@@ -229,7 +252,7 @@
         if(res.status === 403) {
             showStatus(data.message, 'error');
         } else if(data.status === 'success') {
-            showStatus("লগইন সফল হয়েছে! ড্যাশবোর্ডে নেওয়া হচ্ছে...", "success");
+            showStatus("সফলভাবে লগইন হয়েছে! ড্যাশবোর্ডে নেওয়া হচ্ছে...", "success");
             setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
         } else {
             showStatus("সার্ভার এরর: " + data.message, 'error');
