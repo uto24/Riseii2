@@ -221,7 +221,6 @@ def logout():
     return redirect(url_for('auth'))
     
 @app.route('/dashboard')
-@login_required
 def dashboard():
     uid = session['user_id']
     
