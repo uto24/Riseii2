@@ -1,323 +1,185 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">Super Admin</h1>
-    <a href="/dashboard" class="text-sm text-blue-600 hover:underline">Back to App</a>
-</div>
-
-<!-- Tab Navigation -->
-<div class="flex border-b mb-6 overflow-x-auto" x-data>
-    <button onclick="openTab('tasks')" class="tab-btn px-6 py-3 font-bold border-b-2 border-blue-600 text-blue-600" id="btn-tasks">Tasks & Jobs</button>
-    <button onclick="openTab('approvals')" class="tab-btn px-6 py-3 font-bold text-gray-500 hover:text-blue-500" id="btn-approvals">Approvals <span class="bg-red-500 text-white text-xs px-2 rounded-full ml-1">{{ pending_tasks|length + pending_withdraws|length }}</span></button>
-    <button onclick="openTab('users')" class="tab-btn px-6 py-3 font-bold text-gray-500 hover:text-blue-500" id="btn-users">User Manager</button>
-</div>
-
-<!-- SECTION 1: TASK MANAGEMENT -->
-<div id="tab-tasks" class="tab-content">
-    <!-- Create Task -->
-    <div class="bg-white p-6 rounded-xl shadow-md mb-8 border border-gray-200">
-        <h3 class="font-bold text-lg mb-4 text-gray-700">Create New Job</h3>
-        <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input type="text" name="title" placeholder="Task Title" required class="border p-2 rounded">
-            <input type="number" name="reward" placeholder="Reward (BDT)" step="0.01" required class="border p-2 rounded">
-            
-            <select name="category" class="border p-2 rounded">
-                <option value="youtube">YouTube</option>
-                <option value="facebook">Facebook</option>
-                <option value="telegram">Telegram</option>
-                <option value="website">Website</option>
-            </select>
-            
-            <select name="proof_requirement" class="border p-2 rounded">
-                <option value="image">Screenshot Proof</option>
-                <option value="link">Text/Link Proof</option>
-            </select>
-
-            <input type="url" name="task_link" placeholder="Job Link (https://...)" class="col-span-2 border p-2 rounded">
-            <textarea name="description" placeholder="Instructions..." class="col-span-2 border p-2 rounded" rows="2"></textarea>
-            
-            <button type="submit" name="create_task" class="col-span-2 bg-gray-800 text-white py-2 rounded font-bold hover:bg-black">Publish Task</button>
-        </form>
-    </div>
-<!-- SYSTEM NOTICE CONTROL -->
-<div class="bg-gradient-to-r from-indigo-900 to-blue-800 p-6 rounded-xl shadow-lg mb-8 text-white">
-    <h3 class="font-bold text-lg mb-4 border-b border-blue-700 pb-2">
-        <i class="fas fa-bullhorn mr-2"></i> Dashboard System Notice
-    </h3>
-    <form method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="md:col-span-2">
-            <label class="text-xs uppercase font-bold text-blue-200">Notice Text</label>
-            <input type="text" name="notice_text" placeholder="নোটিশ লিখুন (যেমন: ১০ টাকা বোনাস চলছে...)" class="w-full p-3 rounded text-gray-800 outline-none mt-1">
+<div class="max-w-7xl mx-auto mb-24 px-4">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6 mt-4">
+        <h1 class="text-3xl font-black text-gray-800">Admin Control</h1>
+        <div class="flex gap-2">
+            <!-- Link to separate User Page -->
+            {% set admin_path = request.path.strip('/').split('/')[0] %}
+            <a href="/{{ admin_path }}/users" class="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-black transition">
+                <i class="fas fa-users mr-1"></i> Users
+            </a>
+            <a href="/dashboard" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-blue-700 transition">
+                App View
+            </a>
         </div>
-        <div>
-            <label class="text-xs uppercase font-bold text-blue-200">Link (Optional)</label>
-            <input type="url" name="notice_link" placeholder="https://..." class="w-full p-3 rounded text-gray-800 outline-none mt-1">
-        </div>
-        <button type="submit" name="update_system_notice" class="md:col-span-3 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded shadow transition">
-            Update Notice
-        </button>
-    </form>
-</div>
-
-    <!-- GLOBAL NOTICE MANAGEMENT -->
-<div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 mb-8">
-    <div class="flex items-center gap-2 mb-4 border-b pb-2">
-        <i class="fas fa-newspaper text-red-600 text-xl"></i>
-        <h3 class="font-bold text-lg text-gray-800">Global Notice Board</h3>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Quick Stats / Create Task Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         
-        <!-- Post Form -->
-        <div class="md:col-span-1">
+        <!-- Create Task Form -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <h3 class="font-bold text-gray-700 mb-3 border-b pb-2"><i class="fas fa-plus-circle text-blue-600"></i> Post New Job</h3>
             <form method="POST" class="space-y-3">
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase">Title</label>
-                    <input type="text" name="title" placeholder="Notice Title" required class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                <input type="text" name="title" placeholder="Task Title" required class="w-full border p-2 rounded text-sm">
+                <div class="flex gap-2">
+                    <input type="number" name="reward" placeholder="Reward (TK)" step="0.01" required class="w-1/2 border p-2 rounded text-sm">
+                    <select name="category" class="w-1/2 border p-2 rounded text-sm">
+                        <option value="youtube">YouTube</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="other">Other</option>
+                    </select>
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase">Message</label>
-                    <textarea name="message" placeholder="Write full details..." required rows="4" class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-red-500 outline-none"></textarea>
+                <div class="flex gap-2">
+                    <select name="proof_requirement" class="w-1/2 border p-2 rounded text-sm">
+                        <option value="image">Screenshot</option>
+                        <option value="link">Text/Link</option>
+                    </select>
+                    <input type="text" name="task_link" placeholder="Link (Optional)" class="w-1/2 border p-2 rounded text-sm">
                 </div>
-                <button type="submit" name="publish_notice" class="w-full bg-red-600 text-white py-2 rounded font-bold hover:bg-red-700 transition shadow">
-                    Publish Public Notice
-                </button>
+                <textarea name="description" placeholder="Instructions..." rows="1" class="w-full border p-2 rounded text-sm"></textarea>
+                <button type="submit" name="create_task" class="w-full bg-blue-600 text-white py-2 rounded font-bold text-sm hover:bg-blue-700">Publish</button>
             </form>
         </div>
 
-        <!-- Recent Notices List -->
-        <div class="md:col-span-2">
-            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Active Notices</h4>
-            <div class="bg-gray-50 rounded-lg border border-gray-200 h-64 overflow-y-auto p-2">
-                {% for notice in admin_notices %}
-                <div class="bg-white p-3 rounded shadow-sm mb-2 flex justify-between items-start border border-gray-100">
-                    <div>
-                        <p class="font-bold text-sm text-gray-800">{{ notice.title }}</p>
-                        <p class="text-xs text-gray-500 truncate w-48">{{ notice.message }}</p>
-                        <p class="text-[10px] text-gray-400 mt-1">{{ notice.date.strftime('%d %b, %I:%M %p') }}</p>
+        <!-- System Notice -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <h3 class="font-bold text-gray-700 mb-3 border-b pb-2"><i class="fas fa-bullhorn text-orange-500"></i> Dashboard Notice</h3>
+            <form method="POST" class="space-y-3">
+                <input type="text" name="notice_text" placeholder="Notice Text" class="w-full border p-2 rounded text-sm">
+                <input type="text" name="notice_link" placeholder="Notice Link (Optional)" class="w-full border p-2 rounded text-sm">
+                <button type="submit" name="update_system_notice" class="w-full bg-orange-500 text-white py-2 rounded font-bold text-sm hover:bg-orange-600">Update Notice</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- ✅ BULK ACTION TASK SUBMISSIONS -->
+    <!-- ============================================= -->
+    <form action="/{{ admin_path }}/bulk_approve" method="POST" id="bulkForm">
+        
+        <div class="flex justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200 sticky top-0 z-20">
+            <div class="flex items-center gap-3">
+                <input type="checkbox" id="selectAll" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500" onclick="toggleSelectAll()">
+                <div>
+                    <h3 class="font-bold text-gray-800">Task Submissions</h3>
+                    <p class="text-xs text-gray-400">Select items to approve in bulk</p>
+                </div>
+            </div>
+            
+            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-green-700 transition flex items-center gap-2 transform active:scale-95">
+                <i class="fas fa-check-double"></i> Approve Selected
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for sub in pending_tasks %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 relative group overflow-hidden">
+                
+                <!-- Checkbox Overlay -->
+                <div class="absolute top-3 left-3 z-10">
+                    <input type="checkbox" name="selected_ids" value="{{ sub.id }}" class="task-checkbox w-6 h-6 text-blue-600 rounded border-gray-300 focus:ring-blue-500 shadow-sm cursor-pointer">
+                </div>
+
+                <!-- Content -->
+                <div class="pl-12 pr-4 py-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-bold text-gray-800 text-sm line-clamp-1">{{ sub.task_title }}</h4>
+                            <p class="text-[10px] text-gray-500">{{ sub.email }}</p>
+                        </div>
+                        <span class="bg-green-50 text-green-700 text-xs font-bold px-2 py-0.5 rounded">৳{{ sub.task_reward }}</span>
                     </div>
-                    {% set admin_path = request.path.strip('/').split('/')[0] %}
-                    <a href="/{{ admin_path }}/delete_notice/{{ notice.id }}" onclick="return confirm('Delete this notice?')" class="text-red-500 hover:bg-red-50 p-2 rounded transition">
-                        <i class="fas fa-trash-alt"></i>
+
+                    <!-- Proof Preview -->
+                    <div class="bg-gray-50 rounded border border-gray-100 p-2 text-xs text-gray-600 overflow-hidden">
+                        {% if sub.proof_type == 'image' %}
+                            <a href="{{ sub.proof }}" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1">
+                                <i class="fas fa-image"></i> View Image
+                            </a>
+                        {% else %}
+                            <p class="truncate font-mono">{{ sub.proof }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Individual Actions (Optional - Reject Only) -->
+                <div class="bg-gray-50 p-2 border-t border-gray-100 flex justify-end">
+                    <a href="/{{ admin_path }}/reject_task/{{ sub.id }}" class="text-red-500 hover:text-red-700 text-xs font-bold px-3 py-1 border border-red-200 rounded hover:bg-red-50 transition">
+                        Reject
                     </a>
                 </div>
-                {% else %}
-                <p class="text-center text-gray-400 text-xs py-10">No notices published.</p>
-                {% endfor %}
             </div>
+            {% else %}
+            <div class="col-span-full text-center py-12 text-gray-400">
+                <i class="fas fa-check-circle text-4xl mb-2 text-gray-200"></i>
+                <p>All clean! No pending tasks.</p>
+            </div>
+            {% endfor %}
         </div>
-    </div>
-</div>
-    <!-- Active Tasks List -->
-    <h3 class="font-bold text-gray-700 mb-2">Active Jobs</h3>
-    <div class="bg-white rounded shadow overflow-x-auto">
-        <table class="w-full text-sm text-left">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="p-3">Title</th>
-                    <th class="p-3">Reward</th>
-                    <th class="p-3 text-right">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for t in active_tasks %}
-                <tr class="border-b">
-                    <td class="p-3">{{ t.title }}<br><span class="text-xs text-gray-400">{{ t.category }}</span></td>
-                    <td class="p-3 font-bold text-green-600">{{ t.reward }}</td>
-                    <!-- admin_route logic handled by getting path -->
-                    {% set admin_path = request.path.strip('/').split('/')[0] %}
-                    <td class="p-3 text-right">
-                        <a href="/{{ admin_path }}/delete_task_post/{{ t.id }}" onclick="return confirm('Delete this task?')" class="text-red-500 hover:text-red-700 text-xs border border-red-200 px-2 py-1 rounded">Delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+    </form>
 
-<!-- SECTION 2: APPROVALS -->
-<div id="tab-approvals" class="tab-content hidden">
-    <!-- Withdraws -->
-
-    <!-- Activation Requests Table -->
-    <h3 class="font-bold text-gray-700 mb-2 mt-4 bg-yellow-100 p-2 rounded">Account Activations (Fee Verification)</h3>
-    <div class="bg-white rounded shadow overflow-x-auto mb-8">
-        <table class="w-full text-sm text-left">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="p-3">User</th>
-                    <th class="p-3">Payment Info</th>
-                    <th class="p-3">TrxID</th>
-                    <th class="p-3 text-right">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Admin Route থেকে activation_requests পাঠাতে হবে (Next step এ দেখাচ্ছি) -->
+    <!-- Activation & Withdraws (Simple Table) -->
+    <div class="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Activations -->
+        <div>
+            <h3 class="font-bold text-gray-700 mb-3">Activations</h3>
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
                 {% for act in activation_requests %}
-                <tr class="border-b">
-                    <td class="p-3">{{ act.email }}</td>
-                    <td class="p-3">{{ act.method }}<br>{{ act.sender_number }}</td>
-                    <td class="p-3 font-mono font-bold">{{ act.trx_id }}</td>
-                    <td class="p-3 text-right">
-                        {% set admin_path = request.path.strip('/').split('/')[0] %}
-                        <a href="/{{ admin_path }}/approve_activation/{{ act.id }}/{{ act.uid }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs">Activate</a>
-                    </td>
-                </tr>
+                <div class="p-4 border-b last:border-0 flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-sm">{{ act.email }}</p>
+                        <p class="text-xs text-gray-500 font-mono">{{ act.trx_id }} ({{ act.method }})</p>
+                    </div>
+                    <a href="/{{ admin_path }}/approve_activation/{{ act.id }}/{{ act.uid }}" class="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold">Activate</a>
+                </div>
                 {% else %}
-                <tr><td colspan="4" class="p-3 text-center text-gray-400">No activation requests.</td></tr>
+                <p class="p-4 text-center text-xs text-gray-400">No requests</p>
                 {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <h3 class="font-bold text-gray-700 mb-2 mt-4">Withdraw Requests</h3>
-    <div class="bg-white rounded shadow overflow-x-auto mb-8">
-        <table class="w-full text-sm text-left">
-            <thead class="bg-yellow-50">
-                <tr>
-                    <th class="p-3">User Info</th>
-                    <th class="p-3">Method</th>
-                    <th class="p-3">Amount</th>
-                    <th class="p-3 text-right">Action</th>
-                </tr>
-            </thead>
-            <tbody>
+            </div>
+        </div>
+
+        <!-- Withdraws -->
+        <div>
+            <h3 class="font-bold text-gray-700 mb-3">Withdrawals</h3>
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
                 {% for w in pending_withdraws %}
-                <tr class="border-b">
-                    <td class="p-3">{{ w.email }}<br><span class="text-xs font-bold">{{ w.number }}</span></td>
-                    <td class="p-3 capitalize">{{ w.method }}</td>
-                    <td class="p-3 font-bold text-red-500">-{{ w.amount }}</td>
-                    <td class="p-3 text-right">
-                        {% set admin_path = request.path.strip('/').split('/')[0] %}
-                        <a href="/{{ admin_path }}/approve_withdraw/{{ w.id }}" class="bg-green-500 text-white px-3 py-1 rounded text-xs mr-1">Pay</a>
-                        <a href="/{{ admin_path }}/reject_withdraw/{{ w.id }}" class="bg-red-500 text-white px-3 py-1 rounded text-xs">Reject</a>
-                    </td>
-                </tr>
+                <div class="p-4 border-b last:border-0 flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-sm">{{ w.email }}</p>
+                        <p class="text-xs text-gray-500">{{ w.method }} - {{ w.number }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-red-500 text-sm">-{{ w.amount }}</p>
+                        <div class="flex gap-1 mt-1">
+                            <a href="/{{ admin_path }}/approve_withdraw/{{ w.id }}" class="text-green-600 text-xs font-bold border border-green-200 px-2 py-0.5 rounded hover:bg-green-50">Pay</a>
+                            <a href="/{{ admin_path }}/reject_withdraw/{{ w.id }}" class="text-red-600 text-xs font-bold border border-red-200 px-2 py-0.5 rounded hover:bg-red-50">X</a>
+                        </div>
+                    </div>
+                </div>
                 {% else %}
-                <tr><td colspan="4" class="p-4 text-center text-gray-400">No pending withdraws.</td></tr>
+                <p class="p-4 text-center text-xs text-gray-400">No requests</p>
                 {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Task Submissions (Improved UI) -->
-    <h3 class="font-bold text-gray-700 mb-4 mt-8 flex items-center gap-2">
-        <i class="fas fa-tasks text-blue-600"></i> Task Submissions 
-        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{{ pending_tasks|length }} Pending</span>
-    </h3>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-        {% for sub in pending_tasks %}
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition">
-            
-            <!-- Header: Task Title & Reward -->
-            <div class="bg-gray-50 p-4 border-b border-gray-100 flex justify-between items-center">
-                <div>
-                    <h4 class="font-bold text-gray-800 text-sm md:text-base">{{ sub.task_title }}</h4>
-                    <p class="text-xs text-gray-500 flex items-center gap-1">
-                        <i class="fas fa-user"></i> {{ sub.email }}
-                    </p>
-                </div>
-                <div class="text-right">
-                    <span class="bg-green-100 text-green-700 font-bold px-3 py-1 rounded text-sm block">৳{{ sub.task_reward }}</span>
-                    <span class="text-xs text-gray-400 mt-1 block">{{ sub.timestamp.strftime('%d %b, %I:%M %p') }}</span>
-                </div>
-            </div>
-            
-            <!-- Body: Proof -->
-            <div class="p-4">
-                <p class="text-xs font-bold text-gray-500 uppercase mb-2">Proof Submitted:</p>
-                
-                {% if sub.proof_type == 'image' %}
-                    <div class="relative group">
-                        <a href="{{ sub.proof }}" target="_blank">
-                            <img src="{{ sub.proof }}" class="w-full h-40 object-cover rounded-lg border border-gray-200 group-hover:opacity-90 transition">
-                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/30 rounded-lg">
-                                <span class="text-white text-xs font-bold bg-black/50 px-2 py-1 rounded"><i class="fas fa-eye"></i> View Full</span>
-                            </div>
-                        </a>
-                    </div>
-                {% else %}
-                    <div class="bg-gray-50 p-3 rounded border border-gray-200 font-mono text-sm text-blue-600 break-all">
-                        {{ sub.proof }}
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Footer: Actions -->
-            <div class="p-4 bg-gray-50 border-t border-gray-100 flex gap-3">
-                {% set admin_path = request.path.strip('/').split('/')[0] %}
-                
-                <a href="/{{ admin_path }}/approve_task/{{ sub.id }}" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-bold text-sm text-center transition shadow-sm">
-                    <i class="fas fa-check mr-1"></i> Approve
-                </a>
-                
-                <a href="/{{ admin_path }}/reject_task/{{ sub.id }}" class="flex-1 bg-red-100 hover:bg-red-200 text-red-600 py-2 rounded-lg font-bold text-sm text-center transition border border-red-200">
-                    <i class="fas fa-times mr-1"></i> Reject
-                </a>
             </div>
         </div>
-        {% else %}
-        <div class="col-span-2 text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-            <i class="fas fa-clipboard-check text-4xl text-gray-300 mb-3"></i>
-            <p class="text-gray-500">No pending task submissions.</p>
-        </div>
-        {% endfor %}
-    </div>
-
-<!-- SECTION 3: USER MANAGER -->
-<div id="tab-users" class="tab-content hidden">
-    <h3 class="font-bold text-gray-700 mb-2">Recent Users (Last 20)</h3>
-    <div class="bg-white rounded shadow overflow-x-auto">
-        <table class="w-full text-sm text-left">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="p-3">User</th>
-                    <th class="p-3">Balance</th>
-                    <th class="p-3">Manage</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for u in users %}
-                <tr class="border-b">
-                    <td class="p-3">
-                        <span class="font-bold block">{{ u.name }}</span>
-                        <span class="text-xs text-gray-500">{{ u.email }}</span>
-                    </td>
-                    <td class="p-3 font-bold text-green-600">{{ u.balance }}</td>
-                    <td class="p-3">
-                        <form method="POST" class="flex items-center gap-1">
-                            <input type="hidden" name="target_uid" value="{{ u.id }}">
-                            <input type="number" name="amount" placeholder="Amount" step="1" class="w-16 border p-1 rounded text-xs" required>
-                            <select name="action_type" class="border p-1 rounded text-xs">
-                                <option value="add">Add (+)</option>
-                                <option value="deduct">Cut (-)</option>
-                            </select>
-                            <button type="submit" name="update_balance" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Go</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
 </div>
 
+<!-- Select All Script -->
 <script>
-    function openTab(tabName) {
-        // Hide all
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(el => {
-            el.classList.remove('border-blue-600', 'text-blue-600', 'border-b-2');
-            el.classList.add('text-gray-500');
+    function toggleSelectAll() {
+        const mainCheckbox = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.task-checkbox');
+        
+        checkboxes.forEach(cb => {
+            cb.checked = mainCheckbox.checked;
         });
-
-        // Show selected
-        document.getElementById('tab-' + tabName).classList.remove('hidden');
-        document.getElementById('btn-' + tabName).classList.add('border-blue-600', 'text-blue-600', 'border-b-2');
-        document.getElementById('btn-' + tabName).classList.remove('text-gray-500');
     }
 </script>
 {% endblock %}
-
