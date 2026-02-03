@@ -476,7 +476,124 @@ def submit_activation():
     
     flash("অ্যাক্টিভেশন রিকোয়েস্ট জমা হয়েছে! অ্যাডমিন অ্যাপ্রুভ করলে আপনি উইথড্র করতে পারবেন।", "success")
     return redirect(url_for('dashboard'))
+@app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])# --- ADMIN PANEL (CLEAN & FAST) ---
 @app.route(f'/{ADMIN_ROUTE}', methods=['GET', 'POST'])
+@admin_required
+def admin_panel():
+    # POST Request Logic (Create Task, Notice, etc.) - আগের মতোই থাকবে
+    if request.method == 'POST':
+        if 'create_task' in request.form:
+            try:
+                task_link = request.form.get('task_link') or ""
+                db.collection('tasks').add({
+                    'title': request.form.get('title'),
+                    'category': request.form.get('category'),
+                    'task_link': task_link,
+                    'description': request.form.get('description'),
+                    'reward': float(request.form.get('reward')),
+                    'proof_requirement': request.form.get('proof_requirement'),
+                    'created_at': datetime.datetime.now()
+                })
+                flash("New Task Published!", "success")
+            except Exception as e:
+                flash(f"Error: {e}", "error")
+        
+        elif 'update_system_notice' in request.form:
+            # ... (Notice Logic Same) ...
+            db.collection('settings').document('system_notice').set({
+                'text': request.form.get('notice_text'),
+                'link': request.form.get('notice_link'),
+                'updated_at': datetime.datetime.now()
+            })
+            flash("System Notice Updated!", "success")
+
+    # --- DATA FETCHING (OPTIMIZED) ---
+    
+    # 1. Map Task Titles/Rewards (Efficiently)
+    all_tasks_ref = db.collection('tasks').stream()
+    task_map = {t.id: t.to_dict() for t in all_tasks_ref}
+
+    # 2. Only Fetch Pending Submissions
+    p_tasks = db.collection('task_submissions').where(field_path='status', op_string='==', value='pending').stream()
+    pending_tasks = []
+    
+    for sub in p_tasks:
+        sub_data = sub.to_dict()
+        task_id = sub_data.get('task_id')
+        
+        if task_id in task_map:
+            sub_data['task_title'] = task_map[task_id].get('title', 'Unknown')
+            sub_data['task_reward'] = task_map[task_id].get('reward', 0)
+        else:
+            sub_data['task_title'] = "Deleted Task"
+            sub_data['task_reward'] = 0
+            
+        sub_data['id'] = sub.id
+        pending_tasks.append(sub_data)
+
+    # 3. Activation & Withdraw Requests
+    act_reqs = db.collection('activation_requests').where(field_path='status', op_string='==', value='pending').stream()
+    activation_requests = [{'id': d.id, **d.to_dict()} for d in act_reqs]
+    
+    p_withdraws = db.collection('withdraw_requests').where(field_path='status', op_string='==', value='pending').stream()
+    pending_withdraws = [{'id': d.id, **d.to_dict()} for d in p_withdraws]
+
+    # Auto Cleanup
+    cleanup_old_data()
+
+    return render_template('admin.html', 
+                           pending_tasks=pending_tasks, 
+                           pending_withdraws=pending_withdraws,
+                           activation_requests=activation_requests)
+
+
+# --- NEW: BULK APPROVE ROUTE ---
+@app.route(f'/{ADMIN_ROUTE}/bulk_approve', methods=['POST'])
+@admin_required
+def bulk_approve_tasks():
+    selected_ids = request.form.getlist('selected_ids')
+    
+    if not selected_ids:
+        flash("No tasks selected.", "error")
+        return redirect(f'/{ADMIN_ROUTE}')
+        
+    count = 0
+    for sub_id in selected_ids:
+        sub_ref = db.collection('task_submissions').document(sub_id)
+        sub_doc = sub_ref.get()
+        
+        if sub_doc.exists:
+            sub_data = sub_doc.to_dict()
+            if sub_data['status'] == 'pending':
+                # Get Reward
+                task_id = sub_data.get('task_id')
+                task_doc = db.collection('tasks').document(task_id).get()
+                reward = 0
+                if task_doc.exists:
+                    reward = task_doc.to_dict().get('reward', 0)
+                
+                # Update Balance
+                user_ref = db.collection('users').document(sub_data['uid'])
+                user_data = user_ref.get().to_dict()
+                if user_data:
+                    current_bal = user_data.get('balance', 0.0)
+                    user_ref.update({'balance': current_bal + reward})
+                
+                # Mark Approved
+                sub_ref.update({'status': 'approved'})
+                
+                # Add History
+                db.collection('balance_history').add({
+                    'uid': sub_data['uid'],
+                    'type': 'task_earning',
+                    'amount': reward,
+                    'description': 'Bulk Approved Task',
+                    'timestamp': datetime.datetime.now()
+                })
+                count += 1
+                
+    flash(f"Successfully Approved {count} Tasks!", "success")
+    return redirect(f'/{ADMIN_ROUTE}')
 @admin_required
 def admin_panel():
     # --- 1. HANDLE POST REQUESTS ---
