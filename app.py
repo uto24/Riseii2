@@ -513,8 +513,8 @@ def withdraw():
             number = request.form.get('number')
             
             # --- 1. MINIMUM & BALANCE CHECK ---
-            if amount < 50: 
-                flash("Minimum withdraw amount is 50 BDT.", "error")
+            if amount < 250: 
+                flash("Minimum withdraw amount is 250 BDT.", "error")
                 return redirect(url_for('withdraw'))
             
             if user.get('balance', 0) < amount:
@@ -523,8 +523,8 @@ def withdraw():
 
             # --- 2. ELIGIBILITY CHECK (250 TK + 3 REF) ---
             # উইথড্র বাটনে চাপার পর চেক হবে
-            if user.get('balance', 0) < 250 or user.get('referral_count', 0) < 3:
-                flash(f"Withdraw requires 250 BDT & 3 Referrals. (You have: {user.get('balance')} BDT, {user.get('referral_count')} Ref)", "error")
+            if user.get('balance', 0) < 250 or user.get('referral_count', 0) < 0:
+                flash(f"Withdraw requires 250 BDT & 0 Referrals. (You have: {user.get('balance')} BDT, {user.get('referral_count')} Ref)", "error")
                 return redirect(url_for('withdraw'))
 
             # --- 3. ACTIVATION CHECK ---
